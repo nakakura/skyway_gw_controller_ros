@@ -1,0 +1,5 @@
+<launch>
+    <group ns="wg">
+        <node pkg="skyway" name="skyway_api" type="skyway.py" />
+    </group>
+</launch>
