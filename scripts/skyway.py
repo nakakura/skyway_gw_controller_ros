@@ -7,12 +7,9 @@ from api.peer import create_peer
 import const
 
 
-def talker():
+def skyway():
     if not "API_KEY" in os.environ:
-        rospy.logerr(
-            "There is no API_KEY in environments.\nThis code will raise error."
-        )
-        raise Exception, "There is no API_KEY in environments"
+        raise rospy.ROSException, "Set API_KEY in environments"
 
     const.API_KEY = os.environ["API_KEY"]
     rospy.init_node("talker", anonymous=True)
@@ -22,12 +19,12 @@ def talker():
     rate = rospy.Rate(10)  # 10hz
     while not rospy.is_shutdown():
         hello_str = "hello world %s" % rospy.get_time()
-        # rospy.loginfo(hello_str)
+        rospy.logerr(hello_str)
         rate.sleep()
 
 
 if __name__ == "__main__":
     try:
-        talker()
+        skyway()
     except rospy.ROSInterruptException:
         pass
