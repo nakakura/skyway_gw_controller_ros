@@ -53,6 +53,7 @@ def __parse_response(resp, expected_code):
             {}, {"url": resp.url, "error": "406 Not Acceptable", "status": 406}
         )
     elif resp.status_code == 408:
+        rospy.logerr("recv 408")
         response = ApiResponse(
             {}, {"url": resp.url, "error": "408 Request Timeout", "status": 408}
         )
@@ -86,7 +87,8 @@ def get(url, expected_code):
     # type: (str, int) -> ApiResponse
     headers = {"content-type": "application/json"}
     try:
-        resp = requests.get(url, headers, timeout=(3.0, 1.0))
+        # SkyWay WebRTC Gateway's longpoll methods return timeout every 30secs.
+        resp = requests.get(url, headers, timeout=(3.0, 33.0))
         return __parse_response(resp, expected_code)
     except requests.exceptions.RequestException as e:
         return ApiResponse({}, e)
@@ -113,8 +115,7 @@ def delete(url, expected_code):
     headers = {"content-type": "application/json"}
     try:
         rospy.logerr(url)
-        # SkyWay WebRTC Gateway's longpoll methods return timeout every 30secs.
-        resp = requests.delete(url, headers=headers, timeout=(3.0, 30.0))
+        resp = requests.delete(url, headers=headers, timeout=(3.0, 1.0))
         return __parse_response(resp, expected_code)
     except requests.exceptions.RequestException as e:
         return ApiResponse({}, e)
