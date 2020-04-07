@@ -45,6 +45,6 @@ def create_peer(url, key, domain, peer_info, turn):
 def delete_peer(url, peer_info):
     # type: (str, PeerInfo) -> ApiResponse
     if not isinstance(url, str) or not isinstance(peer_info, PeerInfo):
-        rospy.logerr("isinstance true")
+        rospy.logerr("isinstance true in delete_peer")
 
     return delete(url + "/peers/" + peer_info.id() + "?token=" + peer_info.token(), 204)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import requests
-import json
+import simplejson
 import rospy
 from typing import NewType
 
@@ -28,7 +28,10 @@ class ApiResponse:
 def __parse_response(resp, expected_code):
     # type: (requests.Response, int) -> ApiResponse
     if resp.status_code == expected_code:
-        response = ApiResponse(resp.json(), {})
+        try:
+            response = ApiResponse(resp.json(), {})
+        except simplejson.JSONDecodeError as e:
+            response = ApiResponse({}, {})
     elif resp.status_code == 400:
         response = ApiResponse({}, {"url": resp.url, "error": "400 Bad Request"})
     elif resp.status_code == 403:
@@ -90,6 +93,7 @@ def delete(url, expected_code):
     # type: (str, int) -> ApiResponse
     headers = {"content-type": "application/json"}
     try:
+        rospy.logerr(url)
         resp = requests.delete(url, headers=headers, timeout=(3.0, 1.0))
         return __parse_response(resp, expected_code)
     except requests.exceptions.RequestException as e:
