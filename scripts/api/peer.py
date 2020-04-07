@@ -37,7 +37,7 @@ def create_peer(url, key, domain, peer_info, turn):
         return ApiResponse({}, {"error": "invalid type error"})
 
     payload = {"key": key, "domain": domain, "peer_id": peer_info.id(), "turn": turn}
-    return post(url + "/peers", payload, 201)
+    return post("{}/peers".format(url), payload, 201)
 
 
 # This method call DELETE /peer API to delete PeerObject
@@ -47,4 +47,6 @@ def delete_peer(url, peer_info):
     if not isinstance(url, str) or not isinstance(peer_info, PeerInfo):
         return ApiResponse({}, {"error": "invalid type error"})
 
-    return delete(url + "/peers/" + peer_info.id() + "?token=" + peer_info.token(), 204)
+    return delete(
+        "{}/peers/{}?token={}".format(url, peer_info.id(), peer_info.token()), 204
+    )
