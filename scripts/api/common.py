@@ -9,16 +9,20 @@ from typing import NewType
 class ApiResponse:
     def __init__(self, data, err):
         # type: (dict, dict) -> None
-        self.data = data
-        self.err = err
+        self.__data = data
+        self.__err = err
 
     def is_ok(self):
         # type: () -> bool
-        return self.err == {}
+        return self.__err == {}
 
     def json(self):
         # type: () -> dict
-        return self.data
+        return self.__data
+
+    def err(self):
+        # type: () -> dict
+        return self.__err
 
 
 # general method for post

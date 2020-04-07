@@ -11,11 +11,11 @@ from common import post
 class PeerId:
     def __init__(self, peer_id):
         # type: (str) -> PeerId
-        self.peer_id = peer_id
+        self.__peer_id = peer_id
 
     def id(self):
         # type: () -> str
-        return self.peer_id
+        return self.__peer_id
 
 
 # This method call POST /peer API to create PeerObject

@@ -55,7 +55,7 @@ class TestCreatePeertResp(unittest.TestCase):
             "url_create_peer_fail", "key", "domain", PeerId("peerid"), True
         )
         self.assertEqual(
-            response.err,
+            response.err(),
             {"url": "url_create_peer_fail/peers", "error": "404 Not Found"},
         )
         self.assertEqual(response.is_ok(), False)
@@ -66,7 +66,7 @@ class TestCreatePeertResp(unittest.TestCase):
             "http://url_create_peer_fail", "key", "domain", PeerId("peerid"), True
         )
         self.assertEqual(
-            isinstance(response.err, requests.exceptions.RequestException), True
+            isinstance(response.err(), requests.exceptions.RequestException), True
         )
         self.assertEqual(response.is_ok(), False)
 
