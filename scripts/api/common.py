@@ -25,31 +25,34 @@ class ApiResponse:
         return self.__err
 
 
+def __parse_response(resp, expected_code):
+    # type: (requests.Response, int) -> ApiResponse
+    if resp.status_code == expected_code:
+        response = ApiResponse(resp.json(), {})
+    elif resp.status_code == 400:
+        response = ApiResponse({}, {"url": resp.url, "error": "400 Bad Request"})
+    elif resp.status_code == 403:
+        response = ApiResponse({}, {"url": resp.url, "error": "403 Forbidden"})
+    elif resp.status_code == 404:
+        response = ApiResponse({}, {"url": resp.url, "error": "404 Not Found"})
+    elif resp.status_code == 405:
+        response = ApiResponse({}, {"url": resp.url, "error": "405 Method Not Allowed"})
+    elif resp.status_code == 406:
+        response = ApiResponse({}, {"url": resp.url, "error": "406 Not Acceptable"})
+    elif resp.status_code == 408:
+        response = ApiResponse({}, {"url": resp.url, "error": "408 Request Timeout"})
+    else:
+        response = ApiResponse({}, {"url": resp.url, "error": "Unexpected Status Code"})
+    return response
+
+
 # general method for post
 def post(url, payload, expected_code):
     # type: (str, dict, int) -> ApiResponse
     headers = {"content-type": "application/json"}
     try:
         resp = requests.post(url, headers=headers, json=payload, timeout=(3.0, 1.0))
-
-        if resp.status_code == expected_code:
-            response = ApiResponse(resp.json(), {})
-        elif resp.status_code == 400:
-            response = ApiResponse({}, {"url": url, "error": "400 Bad Request"})
-        elif resp.status_code == 403:
-            response = ApiResponse({}, {"url": url, "error": "403 Forbidden"})
-        elif resp.status_code == 404:
-            response = ApiResponse({}, {"url": url, "error": "404 Not Found"})
-        elif resp.status_code == 405:
-            response = ApiResponse({}, {"url": url, "error": "405 Method Not Allowed"})
-        elif resp.status_code == 406:
-            response = ApiResponse({}, {"url": url, "error": "406 Not Acceptable"})
-        elif resp.status_code == 408:
-            response = ApiResponse({}, {"url": url, "error": "408 Request Timeout"})
-        else:
-            response = ApiResponse({}, {"url": url, "error": "Unexpected Status Code"})
-
-        return response
+        return __parse_response(resp, expected_code)
     except requests.exceptions.RequestException as e:
         return ApiResponse({}, e)
     except Exception as e:
@@ -62,25 +65,7 @@ def get(url, expected_code):
     headers = {"content-type": "application/json"}
     try:
         resp = requests.get(url, headers, timeout=(3.0, 1.0))
-
-        if resp.status_code == expected_code:
-            response = ApiResponse(resp.json(), {})
-        elif resp.status_code == 400:
-            response = ApiResponse({}, {"url": url, "error": "400 Bad Request"})
-        elif resp.status_code == 403:
-            response = ApiResponse({}, {"url": url, "error": "403 Forbidden"})
-        elif resp.status_code == 404:
-            response = ApiResponse({}, {"url": url, "error": "404 Not Found"})
-        elif resp.status_code == 405:
-            response = ApiResponse({}, {"url": url, "error": "405 Method Not Allowed"})
-        elif resp.status_code == 406:
-            response = ApiResponse({}, {"url": url, "error": "406 Not Acceptable"})
-        elif resp.status_code == 408:
-            response = ApiResponse({}, {"url": url, "error": "408 Request Timeout"})
-        else:
-            response = ApiResponse({}, {"url": url, "error": "Unexpected Status Code"})
-
-        return response
+        return __parse_response(resp, expected_code)
     except requests.exceptions.RequestException as e:
         return ApiResponse({}, e)
     except Exception as e:
@@ -93,25 +78,7 @@ def put(url, payload, expected_code):
     headers = {"content-type": "application/json"}
     try:
         resp = requests.put(url, headers=headers, json=payload, timeout=(3.0, 1.0))
-
-        if resp.status_code == expected_code:
-            response = ApiResponse(resp.json(), {})
-        elif resp.status_code == 400:
-            response = ApiResponse({}, {"url": url, "error": "400 Bad Request"})
-        elif resp.status_code == 403:
-            response = ApiResponse({}, {"url": url, "error": "403 Forbidden"})
-        elif resp.status_code == 404:
-            response = ApiResponse({}, {"url": url, "error": "404 Not Found"})
-        elif resp.status_code == 405:
-            response = ApiResponse({}, {"url": url, "error": "405 Method Not Allowed"})
-        elif resp.status_code == 406:
-            response = ApiResponse({}, {"url": url, "error": "406 Not Acceptable"})
-        elif resp.status_code == 408:
-            response = ApiResponse({}, {"url": url, "error": "408 Request Timeout"})
-        else:
-            response = ApiResponse({}, {"url": url, "error": "Unexpected Status Code"})
-
-        return response
+        return __parse_response(resp, expected_code)
     except requests.exceptions.RequestException as e:
         return ApiResponse({}, e)
     except Exception as e:
@@ -124,25 +91,7 @@ def delete(url, expected_code):
     headers = {"content-type": "application/json"}
     try:
         resp = requests.delete(url, headers=headers, timeout=(3.0, 1.0))
-
-        if resp.status_code == expected_code:
-            response = ApiResponse(resp.json(), {})
-        elif resp.status_code == 400:
-            response = ApiResponse({}, {"url": url, "error": "400 Bad Request"})
-        elif resp.status_code == 403:
-            response = ApiResponse({}, {"url": url, "error": "403 Forbidden"})
-        elif resp.status_code == 404:
-            response = ApiResponse({}, {"url": url, "error": "404 Not Found"})
-        elif resp.status_code == 405:
-            response = ApiResponse({}, {"url": url, "error": "405 Method Not Allowed"})
-        elif resp.status_code == 406:
-            response = ApiResponse({}, {"url": url, "error": "406 Not Acceptable"})
-        elif resp.status_code == 408:
-            response = ApiResponse({}, {"url": url, "error": "408 Request Timeout"})
-        else:
-            response = ApiResponse({}, {"url": url, "error": "Unexpected Status Code"})
-
-        return response
+        return __parse_response(resp, expected_code)
     except requests.exceptions.RequestException as e:
         return ApiResponse({}, e)
     except Exception as e:

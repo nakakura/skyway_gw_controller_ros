@@ -20,36 +20,38 @@ from scripts.api.peer import *
 
 def mocked_requests_post(*args, **kwargs):
     class MockResponse:
-        def __init__(self, json_data, status_code):
+        def __init__(self, url, json_data, status_code):
             self.json_data = json_data
             self.status_code = status_code
+            self.url = url
 
         def json(self):
             return self.json_data
 
     if args[0] == "url_create_peer_success/peers":
-        return MockResponse(kwargs["json"], 201)
+        return MockResponse(args[0], kwargs["json"], 201)
     elif args[0] == "url_create_peer_fail/peers":
-        return MockResponse({}, 404)
+        return MockResponse(args[0], {}, 404)
 
-    return MockResponse({}, 410)
+    return MockResponse(args[0], {}, 410)
 
 
 def mocked_requests_delete(*args, **kwargs):
     class MockResponse:
-        def __init__(self, json_data, status_code):
+        def __init__(self, url, json_data, status_code):
             self.json_data = json_data
             self.status_code = status_code
+            self.url = url
 
         def json(self):
             return self.json_data
 
     if args[0] == "url_delete_peer_success/peers/peer_id?token=token":
-        return MockResponse({}, 204)
+        return MockResponse(args[0], {}, 204)
     elif args[0] == "url_create_peer_fail/peers":
-        return MockResponse({}, 404)
+        return MockResponse(args[0], {}, 404)
 
-    return MockResponse({}, 410)
+    return MockResponse(args[0], {}, 410)
 
 
 class TestCreatePeertResp(unittest.TestCase):

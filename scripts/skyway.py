@@ -3,7 +3,7 @@
 import os
 import rospy
 
-from api.peer import create_peer
+from api.peer import PeerInfo, create_peer
 import const
 
 
@@ -13,13 +13,16 @@ def skyway():
 
     const.API_KEY = os.environ["API_KEY"]
     rospy.init_node("talker", anonymous=True)
-    create_peer(
-        "http://localhost:8000", const.API_KEY, "localhost", "peer_id", True,
+    resp = create_peer(
+        "http://localhost:8000",
+        const.API_KEY,
+        "localhost",
+        PeerInfo("peer_id", ""),
+        True,
     )
     rate = rospy.Rate(10)  # 10hz
     while not rospy.is_shutdown():
         hello_str = "hello world %s" % rospy.get_time()
-        rospy.logerr(hello_str)
         rate.sleep()
 
 

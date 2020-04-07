@@ -20,58 +20,60 @@ from scripts.api.common import *
 
 def mocked_requests_post(*args, **kwargs):
     class MockResponse:
-        def __init__(self, json_data, status_code):
+        def __init__(self, url, json_data, status_code):
             self.json_data = json_data
             self.status_code = status_code
+            self.url = url
 
         def json(self):
             return self.json_data
 
     if args[0] == "url_201":
         if kwargs["json"] == {"param": "valid"}:
-            return MockResponse({"key1": "value1"}, 201)
+            return MockResponse(args[0], {"key1": "value1"}, 201)
         else:
-            return MockResponse({}, 403)
+            return MockResponse(args[0], {}, 403)
     elif args[0] == "url_400":
-        return MockResponse({}, 400)
+        return MockResponse(args[0], {}, 400)
     elif args[0] == "url_403":
-        return MockResponse({}, 403)
+        return MockResponse(args[0], {}, 403)
     elif args[0] == "url_404":
-        return MockResponse({}, 404)
+        return MockResponse(args[0], {}, 404)
     elif args[0] == "url_405":
-        return MockResponse({}, 405)
+        return MockResponse(args[0], {}, 405)
     elif args[0] == "url_406":
-        return MockResponse({}, 406)
+        return MockResponse(args[0], {}, 406)
     elif args[0] == "url_408":
-        return MockResponse({}, 408)
+        return MockResponse(args[0], {}, 408)
 
     # invalid status code
-    return MockResponse({}, 999)
+    return MockResponse(args[0], {}, 999)
 
 
 def mocked_requests_get(*args, **kwargs):
     class MockResponse:
-        def __init__(self, json_data, status_code):
+        def __init__(self, url, json_data, status_code):
             self.json_data = json_data
             self.status_code = status_code
+            self.url = url
 
         def json(self):
             return self.json_data
 
     if args[0] == "url_200":
-        return MockResponse({"response": "valid"}, 200)
+        return MockResponse(args[0], {"response": "valid"}, 200)
     elif args[0] == "url_400":
-        return MockResponse({}, 400)
+        return MockResponse(args[0], {}, 400)
     elif args[0] == "url_403":
-        return MockResponse({}, 403)
+        return MockResponse(args[0], {}, 403)
     elif args[0] == "url_404":
-        return MockResponse({}, 404)
+        return MockResponse(args[0], {}, 404)
     elif args[0] == "url_405":
-        return MockResponse({}, 405)
+        return MockResponse(args[0], {}, 405)
     elif args[0] == "url_406":
-        return MockResponse({}, 406)
+        return MockResponse(args[0], {}, 406)
     elif args[0] == "url_408":
-        return MockResponse({}, 408)
+        return MockResponse(args[0], {}, 408)
 
     # invalid status code
     return MockResponse({}, 999)
@@ -79,30 +81,31 @@ def mocked_requests_get(*args, **kwargs):
 
 def mocked_requests_put(*args, **kwargs):
     class MockResponse:
-        def __init__(self, json_data, status_code):
+        def __init__(self, url, json_data, status_code):
             self.json_data = json_data
             self.status_code = status_code
+            self.url = url
 
         def json(self):
             return self.json_data
 
     if args[0] == "url_200":
         if kwargs["json"] == {"param": "valid"}:
-            return MockResponse({"response": "valid"}, 200)
+            return MockResponse(args[0], {"response": "valid"}, 200)
         else:
-            return MockResponse({}, 403)
+            return MockResponse(args[0], {}, 403)
     elif args[0] == "url_400":
-        return MockResponse({}, 400)
+        return MockResponse(args[0], {}, 400)
     elif args[0] == "url_403":
-        return MockResponse({}, 403)
+        return MockResponse(args[0], {}, 403)
     elif args[0] == "url_404":
-        return MockResponse({}, 404)
+        return MockResponse(args[0], {}, 404)
     elif args[0] == "url_405":
-        return MockResponse({}, 405)
+        return MockResponse(args[0], {}, 405)
     elif args[0] == "url_406":
-        return MockResponse({}, 406)
+        return MockResponse(args[0], {}, 406)
     elif args[0] == "url_408":
-        return MockResponse({}, 408)
+        return MockResponse(args[0], {}, 408)
 
     # invalid status code
     return MockResponse({}, 999)
@@ -110,27 +113,28 @@ def mocked_requests_put(*args, **kwargs):
 
 def mocked_requests_delete(*args, **kwargs):
     class MockResponse:
-        def __init__(self, json_data, status_code):
+        def __init__(self, url, json_data, status_code):
             self.json_data = json_data
             self.status_code = status_code
+            self.url = url
 
         def json(self):
             return self.json_data
 
     if args[0] == "url_204":
-        return MockResponse({}, 204)
+        return MockResponse(args[0], {}, 204)
     elif args[0] == "url_400":
-        return MockResponse({}, 400)
+        return MockResponse(args[0], {}, 400)
     elif args[0] == "url_403":
-        return MockResponse({}, 403)
+        return MockResponse(args[0], {}, 403)
     elif args[0] == "url_404":
-        return MockResponse({}, 404)
+        return MockResponse(args[0], {}, 404)
     elif args[0] == "url_405":
-        return MockResponse({}, 405)
+        return MockResponse(args[0], {}, 405)
     elif args[0] == "url_406":
-        return MockResponse({}, 406)
+        return MockResponse(args[0], {}, 406)
     elif args[0] == "url_408":
-        return MockResponse({}, 408)
+        return MockResponse(args[0], {}, 408)
 
     # invalid status code
     return MockResponse({}, 999)
