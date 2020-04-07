@@ -153,21 +153,28 @@ class TestRest(unittest.TestCase):
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_post_400(self, mock_post):
         response = post("url_400", {"param": "valid"}, 201)
-        self.assertEqual(response.err(), {"url": "url_400", "error": "400 Bad Request"})
+        self.assertEqual(
+            response.err(),
+            {"url": "url_400", "status": 400, "error": "400 Bad Request"},
+        )
         self.assertEqual(response.is_ok(), False)
 
     # return 403
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_post_403(self, mock_post):
         response = post("url_403", {"param": "valid"}, 201)
-        self.assertEqual(response.err(), {"url": "url_403", "error": "403 Forbidden"})
+        self.assertEqual(
+            response.err(), {"url": "url_403", "status": 403, "error": "403 Forbidden"}
+        )
         self.assertEqual(response.is_ok(), False)
 
     # return 404
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_post_404(self, mock_post):
         response = post("url_404", {"param": "valid"}, 201)
-        self.assertEqual(response.err(), {"url": "url_404", "error": "404 Not Found"})
+        self.assertEqual(
+            response.err(), {"url": "url_404", "status": 404, "error": "404 Not Found"}
+        )
         self.assertEqual(response.is_ok(), False)
 
     # return 405
@@ -175,7 +182,8 @@ class TestRest(unittest.TestCase):
     def test_post_405(self, mock_post):
         response = post("url_405", {"param": "valid"}, 201)
         self.assertEqual(
-            response.err(), {"url": "url_405", "error": "405 Method Not Allowed"}
+            response.err(),
+            {"url": "url_405", "status": 405, "error": "405 Method Not Allowed"},
         )
         self.assertEqual(response.is_ok(), False)
 
@@ -184,7 +192,8 @@ class TestRest(unittest.TestCase):
     def test_post_406(self, mock_post):
         response = post("url_406", {"param": "valid"}, 201)
         self.assertEqual(
-            response.err(), {"url": "url_406", "error": "406 Not Acceptable"}
+            response.err(),
+            {"url": "url_406", "status": 406, "error": "406 Not Acceptable"},
         )
         self.assertEqual(response.is_ok(), False)
 
@@ -193,7 +202,8 @@ class TestRest(unittest.TestCase):
     def test_post_408(self, mock_post):
         response = post("url_408", {"param": "valid"}, 201)
         self.assertEqual(
-            response.err(), {"url": "url_408", "error": "408 Request Timeout"}
+            response.err(),
+            {"url": "url_408", "status": 408, "error": "408 Request Timeout"},
         )
         self.assertEqual(response.is_ok(), False)
 
@@ -202,7 +212,8 @@ class TestRest(unittest.TestCase):
     def test_post_410(self, mock_post):
         response = post("url_410", {"param": "valid"}, 201)
         self.assertEqual(
-            response.err(), {"url": "url_410", "error": "Unexpected Status Code"}
+            response.err(),
+            {"url": "url_410", "status": 999, "error": "Unexpected Status Code"},
         )
         self.assertEqual(response.is_ok(), False)
 
@@ -210,15 +221,18 @@ class TestRest(unittest.TestCase):
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_post_with_wrong_params(self, mock_post):
         response = post("url_201", {"param": "invalid"}, 201)
-        self.assertEqual(response.err(), {"url": "url_201", "error": "403 Forbidden"})
+        self.assertEqual(
+            response.err(), {"url": "url_201", "status": 403, "error": "403 Forbidden"}
+        )
         self.assertEqual(response.is_ok(), False)
 
     # wrong post parameters
     @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_post_wait_wrong_sutatuscode(self, mock_post):
+    def test_post_wait_wrong_statuscode(self, mock_post):
         response = post("url_201", {"param": "valid"}, 202)
         self.assertEqual(
-            response.err(), {"url": "url_201", "error": "Unexpected Status Code"}
+            response.err(),
+            {"url": "url_201", "status": 201, "error": "Unexpected Status Code"},
         )
         self.assertEqual(response.is_ok(), False)
 

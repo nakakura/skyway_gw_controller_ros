@@ -99,7 +99,11 @@ class TestCreatePeertResp(unittest.TestCase):
         )
         self.assertEqual(
             response.err(),
-            {"url": "url_create_peer_fail/peers", "error": "404 Not Found"},
+            {
+                "url": "url_create_peer_fail/peers",
+                "status": 404,
+                "error": "404 Not Found",
+            },
         )
         self.assertEqual(response.is_ok(), False)
 

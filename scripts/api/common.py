@@ -33,19 +33,38 @@ def __parse_response(resp, expected_code):
         except simplejson.JSONDecodeError as e:
             response = ApiResponse({}, {})
     elif resp.status_code == 400:
-        response = ApiResponse({}, {"url": resp.url, "error": "400 Bad Request"})
+        response = ApiResponse(
+            {}, {"url": resp.url, "error": "400 Bad Request", "status": 400}
+        )
     elif resp.status_code == 403:
-        response = ApiResponse({}, {"url": resp.url, "error": "403 Forbidden"})
+        response = ApiResponse(
+            {}, {"url": resp.url, "error": "403 Forbidden", "status": 403}
+        )
     elif resp.status_code == 404:
-        response = ApiResponse({}, {"url": resp.url, "error": "404 Not Found"})
+        response = ApiResponse(
+            {}, {"url": resp.url, "error": "404 Not Found", "status": 404}
+        )
     elif resp.status_code == 405:
-        response = ApiResponse({}, {"url": resp.url, "error": "405 Method Not Allowed"})
+        response = ApiResponse(
+            {}, {"url": resp.url, "error": "405 Method Not Allowed", "status": 405}
+        )
     elif resp.status_code == 406:
-        response = ApiResponse({}, {"url": resp.url, "error": "406 Not Acceptable"})
+        response = ApiResponse(
+            {}, {"url": resp.url, "error": "406 Not Acceptable", "status": 406}
+        )
     elif resp.status_code == 408:
-        response = ApiResponse({}, {"url": resp.url, "error": "408 Request Timeout"})
+        response = ApiResponse(
+            {}, {"url": resp.url, "error": "408 Request Timeout", "status": 408}
+        )
     else:
-        response = ApiResponse({}, {"url": resp.url, "error": "Unexpected Status Code"})
+        response = ApiResponse(
+            {},
+            {
+                "url": resp.url,
+                "error": "Unexpected Status Code",
+                "status": resp.status_code,
+            },
+        )
     return response
 
 
