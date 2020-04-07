@@ -1,3 +1,4 @@
 <launch>
-    <test test-name="api_peer" pkg="skyway" type="peer.py" />
+    <test test-name="api_common" pkg="skyway" type="common.py" />
+    <test test-name="peer_api" pkg="skyway" type="peer.py" />
 </launch>

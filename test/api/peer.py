@@ -27,24 +27,7 @@ def mocked_requests_post(*args, **kwargs):
         def json(self):
             return self.json_data
 
-    if args[0] == "url_201":
-        if kwargs["json"] == {"param": "valid"}:
-            return MockResponse({"key1": "value1"}, 201)
-        else:
-            return MockResponse({}, 403)
-    elif args[0] == "url_400":
-        return MockResponse({}, 400)
-    elif args[0] == "url_403":
-        return MockResponse({}, 403)
-    elif args[0] == "url_404":
-        return MockResponse({}, 404)
-    elif args[0] == "url_405":
-        return MockResponse({}, 405)
-    elif args[0] == "url_406":
-        return MockResponse({}, 406)
-    elif args[0] == "url_408":
-        return MockResponse({}, 408)
-    elif args[0] == "url_create_peer_success/peers":
+    if args[0] == "url_create_peer_success/peers":
         return MockResponse(kwargs["json"], 201)
     elif args[0] == "url_create_peer_fail/peers":
         return MockResponse({}, 404)
@@ -52,89 +35,7 @@ def mocked_requests_post(*args, **kwargs):
     return MockResponse({}, 410)
 
 
-class TestPostResp(unittest.TestCase):
-
-    # success case
-    @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_post_success(self, mock_post):
-        response = post("url_201", {"param": "valid"}, 201)
-        self.assertEqual(response.json(), {"key1": "value1"})
-        self.assertEqual(response.is_ok(), True)
-
-    # return 400
-    @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_post_400(self, mock_post):
-        response = post("url_400", {"param": "valid"}, 201)
-        self.assertEqual(response.err, {"url": "url_400", "error": "400 Bad Request"})
-        self.assertEqual(response.is_ok(), False)
-
-    # return 403
-    @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_post_403(self, mock_post):
-        response = post("url_403", {"param": "valid"}, 201)
-        self.assertEqual(response.err, {"url": "url_403", "error": "403 Forbidden"})
-        self.assertEqual(response.is_ok(), False)
-
-    # return 404
-    @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_post_404(self, mock_post):
-        response = post("url_404", {"param": "valid"}, 201)
-        self.assertEqual(response.err, {"url": "url_404", "error": "404 Not Found"})
-        self.assertEqual(response.is_ok(), False)
-
-    # return 405
-    @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_post_405(self, mock_post):
-        response = post("url_405", {"param": "valid"}, 201)
-        self.assertEqual(
-            response.err, {"url": "url_405", "error": "405 Method Not Allowed"}
-        )
-        self.assertEqual(response.is_ok(), False)
-
-    # return 406
-    @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_post_406(self, mock_post):
-        response = post("url_406", {"param": "valid"}, 201)
-        self.assertEqual(
-            response.err, {"url": "url_406", "error": "406 Not Acceptable"}
-        )
-        self.assertEqual(response.is_ok(), False)
-
-    # return 408
-    @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_post_408(self, mock_post):
-        response = post("url_408", {"param": "valid"}, 201)
-        self.assertEqual(
-            response.err, {"url": "url_408", "error": "408 Request Timeout"}
-        )
-        self.assertEqual(response.is_ok(), False)
-
-    # return unknown code
-    @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_post_410(self, mock_post):
-        response = post("url_410", {"param": "valid"}, 201)
-        self.assertEqual(
-            response.err, {"url": "url_410", "error": "Unexpected Status Code"}
-        )
-        self.assertEqual(response.is_ok(), False)
-
-    # wrong post parameters
-    @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_post_with_wrong_params(self, mock_post):
-        response = post("url_201", {"param": "invalid"}, 201)
-        self.assertEqual(response.err, {"url": "url_201", "error": "403 Forbidden"})
-        self.assertEqual(response.is_ok(), False)
-
-    # wrong post parameters
-    @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_post_wait_wrong_sutatuscode(self, mock_post):
-        response = post("url_201", {"param": "valid"}, 202)
-        self.assertEqual(
-            response.err, {"url": "url_201", "error": "Unexpected Status Code"}
-        )
-        self.assertEqual(response.is_ok(), False)
-
-    # -------------------- create peer --------------------
+class TestCreatePeertResp(unittest.TestCase):
     # create peer success
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_create_peer_success(self, mock_post):
@@ -174,4 +75,4 @@ if __name__ == "__main__":
     import rostest
 
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-    rostest.rosrun(PKG, "test-skyway", TestPostResp)
+    rostest.rosrun(PKG, "peer_api", TestCreatePeertResp)
