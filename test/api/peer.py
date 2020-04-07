@@ -35,6 +35,23 @@ def mocked_requests_post(*args, **kwargs):
     return MockResponse({}, 410)
 
 
+def mocked_requests_delete(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+
+    if args[0] == "url_delete_peer_success/peers/peer_id?token=token":
+        return MockResponse({}, 204)
+    elif args[0] == "url_create_peer_fail/peers":
+        return MockResponse({}, 404)
+
+    return MockResponse({}, 410)
+
+
 class TestCreatePeertResp(unittest.TestCase):
     # create peer success
     @mock.patch("requests.post", side_effect=mocked_requests_post)
@@ -69,6 +86,13 @@ class TestCreatePeertResp(unittest.TestCase):
             isinstance(response.err(), requests.exceptions.RequestException), True
         )
         self.assertEqual(response.is_ok(), False)
+
+    # delete peer success
+    @mock.patch("requests.delete", side_effect=mocked_requests_delete)
+    def test_delete_peer_success(self, mock_post):
+        response = delete_peer("url_delete_peer_success", PeerInfo("peer_id", "token"))
+        self.assertEqual(response.json(), {})
+        self.assertEqual(response.is_ok(), True)
 
 
 if __name__ == "__main__":

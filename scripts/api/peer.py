@@ -5,7 +5,7 @@ import json
 import rospy
 from typing import NewType
 
-from common import post
+from common import post, get, put, delete
 
 
 class PeerInfo:
@@ -38,3 +38,13 @@ def create_peer(url, key, domain, peer_info, turn):
 
     payload = {"key": key, "domain": domain, "peer_id": peer_info.id(), "turn": turn}
     return post(url + "/peers", payload, 201)
+
+
+# This method call DELETE /peer API to delete PeerObject
+# http://35.200.46.204/#/1.peers/peer_destroy
+def delete_peer(url, peer_info):
+    # type: (str, PeerInfo) -> ApiResponse
+    if not isinstance(url, str) or not isinstance(peer_info, PeerInfo):
+        rospy.logerr("isinstance true")
+
+    return delete(url + "/peers/" + peer_info.id() + "?token=" + peer_info.token(), 204)
