@@ -50,3 +50,16 @@ def delete_peer(url, peer_info):
     return delete(
         "{}/peers/{}?token={}".format(url, peer_info.id(), peer_info.token()), 204
     )
+
+
+# This method listen events of /peer API
+# http://35.200.46.204/#/1.peers/peer_event
+def listen_event(url, peer_info):
+    # type: (str, PeerInfo) -> ApiResponse
+    if not isinstance(url, str) or not isinstance(peer_info, PeerInfo):
+        return ApiResponse({}, {"error": "invalid type error"})
+
+    return get(
+        "{}/peers/{}/events?token={}".format(url, peer_info.id(), peer_info.token()),
+        200,
+    )

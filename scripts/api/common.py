@@ -94,7 +94,8 @@ def delete(url, expected_code):
     headers = {"content-type": "application/json"}
     try:
         rospy.logerr(url)
-        resp = requests.delete(url, headers=headers, timeout=(3.0, 1.0))
+        # SkyWay WebRTC Gateway's longpoll methods return timeout every 30secs.
+        resp = requests.delete(url, headers=headers, timeout=(3.0, 30.0))
         return __parse_response(resp, expected_code)
     except requests.exceptions.RequestException as e:
         return ApiResponse({}, e)

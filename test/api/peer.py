@@ -54,6 +54,30 @@ def mocked_requests_delete(*args, **kwargs):
     return MockResponse(args[0], {}, 410)
 
 
+def mocked_requests_get(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, url, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+            self.url = url
+
+        def json(self):
+            return self.json_data
+
+    if args[0] == "url_listen_event_success/peers/peer_id/events?token=token":
+        _value = {
+            "event": "TYPE_OF_EVENT",
+            "params": {"peer_id": "peer_id", "token": "token"},
+            "call_params": {"media_connection_id": "mc-test"},
+            "data_params": {"data_connection_id": "da-test"},
+        }
+        return MockResponse(args[0], _value, 200)
+    elif args[0] == "url_listen_event_timeout/peers/peer_id/events?token=token":
+        return MockResponse(args[0], {}, 408)
+
+    return MockResponse(args[0], {}, 410)
+
+
 class TestCreatePeertResp(unittest.TestCase):
     # create peer success
     @mock.patch("requests.post", side_effect=mocked_requests_post)
@@ -95,6 +119,30 @@ class TestCreatePeertResp(unittest.TestCase):
         response = delete_peer("url_delete_peer_success", PeerInfo("peer_id", "token"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
+
+    # listen event success
+    @mock.patch("requests.get", side_effect=mocked_requests_get)
+    def test_listen_event_success(self, mock_post):
+        _value = {
+            "event": "TYPE_OF_EVENT",
+            "params": {"peer_id": "peer_id", "token": "token"},
+            "call_params": {"media_connection_id": "mc-test"},
+            "data_params": {"data_connection_id": "da-test"},
+        }
+        response = listen_event(
+            "url_listen_event_success", PeerInfo("peer_id", "token")
+        )
+        self.assertEqual(response.json(), _value)
+        self.assertEqual(response.is_ok(), True)
+
+    # listen event timeout
+    @mock.patch("requests.get", side_effect=mocked_requests_get)
+    def test_listen_event_timeout(self, mock_post):
+        response = listen_event(
+            "url_listen_event_timeout", PeerInfo("peer_id", "token")
+        )
+        self.assertEqual(response.json(), {})
+        self.assertEqual(response.is_ok(), False)
 
 
 if __name__ == "__main__":
