@@ -40,7 +40,7 @@ class TestCreatePeertResp(unittest.TestCase):
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_create_peer_success(self, mock_post):
         response = create_peer(
-            "url_create_peer_success", "key", "domain", PeerId("peerid"), True
+            "url_create_peer_success", "key", "domain", PeerInfo("peerid", ""), True
         )
         self.assertEqual(
             response.json(),
@@ -52,7 +52,7 @@ class TestCreatePeertResp(unittest.TestCase):
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_create_peer_fail(self, mock_post):
         response = create_peer(
-            "url_create_peer_fail", "key", "domain", PeerId("peerid"), True
+            "url_create_peer_fail", "key", "domain", PeerInfo("peerid", ""), True
         )
         self.assertEqual(
             response.err(),
@@ -63,7 +63,7 @@ class TestCreatePeertResp(unittest.TestCase):
     # create peer fail due to http error
     def test_create_peer_no_server(self):
         response = create_peer(
-            "http://url_create_peer_fail", "key", "domain", PeerId("peerid"), True
+            "http://url_create_peer_fail", "key", "domain", PeerInfo("peerid", ""), True
         )
         self.assertEqual(
             isinstance(response.err(), requests.exceptions.RequestException), True
