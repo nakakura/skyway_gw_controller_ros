@@ -5,7 +5,7 @@ import json
 import rospy
 from typing import NewType
 
-from common import post, get, put, delete
+from common import post, get, put, delete, ApiResponse
 
 
 class PeerInfo:
@@ -28,13 +28,13 @@ class PeerInfo:
 def create_peer(url, key, domain, peer_info, turn):
     # type: (str, str, str, PeerInfo, bool) -> ApiResponse
     if (
-        isinstance(url, str)
-        and isinstance(key, str)
-        and isinstance(domain, str)
-        and isinstance(peer_info, PeerInfo)
-        and isinstance(turn, bool)
+        not isinstance(url, str)
+        or not isinstance(key, str)
+        or not isinstance(domain, str)
+        or not isinstance(peer_info, PeerInfo)
+        or not isinstance(turn, bool)
     ):
-        rospy.logerr("isinstance true")
+        return ApiResponse({}, {"error": "invalid type error"})
 
     payload = {"key": key, "domain": domain, "peer_id": peer_info.id(), "turn": turn}
     return post(url + "/peers", payload, 201)
@@ -45,6 +45,6 @@ def create_peer(url, key, domain, peer_info, turn):
 def delete_peer(url, peer_info):
     # type: (str, PeerInfo) -> ApiResponse
     if not isinstance(url, str) or not isinstance(peer_info, PeerInfo):
-        rospy.logerr("isinstance true in delete_peer")
+        return ApiResponse({}, {"error": "invalid type error"})
 
     return delete(url + "/peers/" + peer_info.id() + "?token=" + peer_info.token(), 204)
