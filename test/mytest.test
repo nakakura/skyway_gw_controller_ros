@@ -1,4 +1,3 @@
 <launch>
-    <node pkg="skyway" name="skyway_api" type="skyway.py" />
     <test test-name="api_peer" pkg="skyway" type="peer.py" />
 </launch>
