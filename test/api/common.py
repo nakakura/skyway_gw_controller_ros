@@ -49,8 +49,95 @@ def mocked_requests_post(*args, **kwargs):
     return MockResponse({}, 999)
 
 
-class TestPostResp(unittest.TestCase):
+def mocked_requests_get(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
 
+        def json(self):
+            return self.json_data
+
+    if args[0] == "url_200":
+        return MockResponse({"response": "valid"}, 200)
+    elif args[0] == "url_400":
+        return MockResponse({}, 400)
+    elif args[0] == "url_403":
+        return MockResponse({}, 403)
+    elif args[0] == "url_404":
+        return MockResponse({}, 404)
+    elif args[0] == "url_405":
+        return MockResponse({}, 405)
+    elif args[0] == "url_406":
+        return MockResponse({}, 406)
+    elif args[0] == "url_408":
+        return MockResponse({}, 408)
+
+    # invalid status code
+    return MockResponse({}, 999)
+
+
+def mocked_requests_put(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+
+    if args[0] == "url_200":
+        if kwargs["json"] == {"param": "valid"}:
+            return MockResponse({"response": "valid"}, 200)
+        else:
+            return MockResponse({}, 403)
+    elif args[0] == "url_400":
+        return MockResponse({}, 400)
+    elif args[0] == "url_403":
+        return MockResponse({}, 403)
+    elif args[0] == "url_404":
+        return MockResponse({}, 404)
+    elif args[0] == "url_405":
+        return MockResponse({}, 405)
+    elif args[0] == "url_406":
+        return MockResponse({}, 406)
+    elif args[0] == "url_408":
+        return MockResponse({}, 408)
+
+    # invalid status code
+    return MockResponse({}, 999)
+
+
+def mocked_requests_delete(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+
+    if args[0] == "url_204":
+        return MockResponse({}, 204)
+    elif args[0] == "url_400":
+        return MockResponse({}, 400)
+    elif args[0] == "url_403":
+        return MockResponse({}, 403)
+    elif args[0] == "url_404":
+        return MockResponse({}, 404)
+    elif args[0] == "url_405":
+        return MockResponse({}, 405)
+    elif args[0] == "url_406":
+        return MockResponse({}, 406)
+    elif args[0] == "url_408":
+        return MockResponse({}, 408)
+
+    # invalid status code
+    return MockResponse({}, 999)
+
+
+class TestRest(unittest.TestCase):
+    # -------------------- POST --------------------
     # success case
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_post_success(self, mock_post):
@@ -131,9 +218,32 @@ class TestPostResp(unittest.TestCase):
         )
         self.assertEqual(response.is_ok(), False)
 
+    # -------------------- GET --------------------
+    # get success
+    @mock.patch("requests.get", side_effect=mocked_requests_get)
+    def test_get_success(self, mock_get):
+        response = get("url_200", 200)
+        self.assertEqual(response.json(), {"response": "valid"})
+        self.assertEqual(response.is_ok(), True)
+
+    # -------------------- DELETE --------------------
+    # delete success
+    @mock.patch("requests.delete", side_effect=mocked_requests_delete)
+    def test_delete_success(self, mock_delete):
+        response = delete("url_204", 204)
+        self.assertEqual(response.is_ok(), True)
+
+    # -------------------- PUT --------------------
+    # put success
+    @mock.patch("requests.put", side_effect=mocked_requests_put)
+    def test_put_success(self, mock_delete):
+        response = put("url_200", {"param": "valid"}, 200)
+        self.assertEqual(response.json(), {"response": "valid"})
+        self.assertEqual(response.is_ok(), True)
+
 
 if __name__ == "__main__":
     import rostest
 
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-    rostest.rosrun(PKG, "api_common", TestPostResp)
+    rostest.rosrun(PKG, "api_common", TestRest)
