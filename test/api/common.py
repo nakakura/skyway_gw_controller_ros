@@ -140,7 +140,7 @@ def mocked_requests_delete(*args, **kwargs):
     return MockResponse({}, 999)
 
 
-class TestRest(unittest.TestCase):
+class TestCommonRest(unittest.TestCase):
     # -------------------- POST --------------------
     # success case
     @mock.patch("requests.post", side_effect=mocked_requests_post)
@@ -264,4 +264,4 @@ if __name__ == "__main__":
     import rostest
 
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-    rostest.rosrun(PKG, "api_common", TestRest)
+    rostest.rosrun(PKG, "api_common", TestCommonRest)

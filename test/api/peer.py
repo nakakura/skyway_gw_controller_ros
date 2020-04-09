@@ -80,7 +80,7 @@ def mocked_requests_get(*args, **kwargs):
     return MockResponse(args[0], {}, 410)
 
 
-class TestCreatePeertResp(unittest.TestCase):
+class TestPeerApi(unittest.TestCase):
     # create peer success
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_create_peer_success(self, mock_post):
@@ -162,4 +162,4 @@ if __name__ == "__main__":
     import rostest
 
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-    rostest.rosrun(PKG, "peer_api", TestCreatePeertResp)
+    rostest.rosrun(PKG, "peer_api", TestPeerApi)

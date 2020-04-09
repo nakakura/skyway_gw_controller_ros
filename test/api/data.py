@@ -91,7 +91,7 @@ def mocked_requests_put(*args, **kwargs):
     return MockResponse(args[0], {}, 410)
 
 
-class TestCreatePeertResp(unittest.TestCase):
+class TestDataApi(unittest.TestCase):
     # open dataport
     @mock.patch("requests.get", side_effect=mocked_requests_get)
     def test_create_data_success(self, mock_post):
@@ -101,14 +101,14 @@ class TestCreatePeertResp(unittest.TestCase):
 
     # close dataport
     @mock.patch("requests.delete", side_effect=mocked_requests_delete)
-    def test_create_delete_success(self, mock_delete):
+    def test_delete_data_success(self, mock_delete):
         response = delete_data("url_delete_data_success", DataId("data_id"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
     # establish dataconnection success
     @mock.patch("requests.post", side_effect=mocked_requests_post)
-    def test_create_delete_success(self, mock_post):
+    def test_connect_success(self, mock_post):
         options = DataConnectionOptions(
             PeerInfo("peer_id", "token"),
             {
@@ -154,7 +154,7 @@ class TestCreatePeertResp(unittest.TestCase):
 
     # close dataconnection success
     @mock.patch("requests.delete", side_effect=mocked_requests_delete)
-    def test_create_delete_success(self, mock_delete):
+    def test_disconnect_success(self, mock_delete):
         response = disconnect(
             "url_delete_data_connection_success", DataConnectionId("data_connection_id")
         )
@@ -163,7 +163,7 @@ class TestCreatePeertResp(unittest.TestCase):
 
     # redirect success
     @mock.patch("requests.put", side_effect=mocked_requests_put)
-    def test_create_redirect_success(self, mock_delete):
+    def test_redirect_success(self, mock_delete):
         response = redirect(
             "url_redirect_success",
             DataId("data_id"),
@@ -180,7 +180,7 @@ class TestCreatePeertResp(unittest.TestCase):
 
     # status success
     @mock.patch("requests.get", side_effect=mocked_requests_get)
-    def test_event_success(self, mock_get):
+    def test_status_success(self, mock_get):
         response = status("url_status_success", DataConnectionId("data_connection_id"))
         self.assertEqual(response.is_ok(), True)
 
@@ -189,4 +189,4 @@ if __name__ == "__main__":
     import rostest
 
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-    rostest.rosrun(PKG, "peer_api", TestCreatePeertResp)
+    rostest.rosrun(PKG, "data_api", TestDataApi)
