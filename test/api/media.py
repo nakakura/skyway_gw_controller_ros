@@ -53,6 +53,8 @@ def mocked_requests_delete(*args, **kwargs):
         return MockResponse(args[0], {}, 204)
     elif args[0] == "url_delete_rtcp/media/rtcp/rtcp_id":
         return MockResponse(args[0], {}, 204)
+    elif args[0] == "url_disconnect_success/media/connections/media_connection_id":
+        return MockResponse(args[0], {}, 204)
 
     return MockResponse(args[0], {}, 410)
 
@@ -86,7 +88,7 @@ class TestMediaApi(unittest.TestCase):
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
-    # close RtcpSocket
+    # call success
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_call_success(self, mock_post):
         constraints = {
@@ -137,6 +139,15 @@ class TestMediaApi(unittest.TestCase):
             PeerInfo("peer_id", "token"), "target_id", constraints, redirects
         )
         response = call("url_call_success", option)
+        self.assertEqual(response.json(), {})
+        self.assertEqual(response.is_ok(), True)
+
+    # disconnect success
+    @mock.patch("requests.delete", side_effect=mocked_requests_delete)
+    def test_delete_rtcp_success(self, mock_post):
+        response = disconnect(
+            "url_disconnect_success", MediaConnectionId("media_connection_id")
+        )
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 

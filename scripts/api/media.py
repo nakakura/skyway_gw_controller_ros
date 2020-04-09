@@ -19,6 +19,16 @@ class MediaId:
         return self.__media_id
 
 
+class MediaConnectionId:
+    def __init__(self, media_connection_id):
+        # type: (str) -> MediaConnectionId
+        self.__media_connection_id = media_connection_id
+
+    def id(self):
+        # type: () -> str
+        return self.__media_connection_id
+
+
 class RtcpId:
     def __init__(self, rtcp_id):
         # type: (str) -> RtcpId
@@ -81,3 +91,10 @@ def delete_rtcp(url, rtcp_id):
 def call(url, call_option):
     # type: (str, CallOption) -> ApiResponse
     return post("{}/media/connections".format(url), {}, 202)
+
+
+# This method call DELETE /media/connections API to close P2P link
+# http://35.200.46.204/#/3.media/media_connection_close
+def disconnect(url, media_connection_id):
+    # type: (str, MediaConnectionId) -> ApiResponse
+    return delete("{}/media/connections/{}".format(url, media_connection_id.id()), 204)
