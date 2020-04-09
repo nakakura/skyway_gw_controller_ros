@@ -30,3 +30,10 @@ def create_media(url, is_video):
 def delete_media(url, media_id):
     # type: (str, MediaId) -> ApiResponse
     return delete("{}/media/{}".format(url, media_id.id()), 204)
+
+
+# This method call POST /media/rtcp API to open a RtcpSocket
+# http://35.200.46.204/#/3.media/media_rtcp_create
+def create_rtcp(url):
+    # type: (str) -> ApiResponse
+    return post("{}/media/rtcp".format(url), {}, 201)
