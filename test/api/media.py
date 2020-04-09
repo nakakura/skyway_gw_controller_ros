@@ -28,10 +28,13 @@ def mocked_requests_post(*args, **kwargs):
         def json(self):
             return self.json_data
 
+    rospy.logerr(args[0])
     if args[0] == "url_create_media/media":
         return MockResponse(args[0], {}, 201)
     elif args[0] == "url_create_rtcp/media/rtcp":
         return MockResponse(args[0], {}, 201)
+    elif args[0] == "url_call_success/media/connections":
+        return MockResponse(args[0], {}, 202)
 
     return MockResponse(args[0], {}, 410)
 
@@ -80,6 +83,60 @@ class TestMediaApi(unittest.TestCase):
     @mock.patch("requests.delete", side_effect=mocked_requests_delete)
     def test_delete_rtcp_success(self, mock_post):
         response = delete_rtcp("url_delete_rtcp", RtcpId("rtcp_id"))
+        self.assertEqual(response.json(), {})
+        self.assertEqual(response.is_ok(), True)
+
+    # close RtcpSocket
+    @mock.patch("requests.post", side_effect=mocked_requests_post)
+    def test_call_success(self, mock_post):
+        constraints = {
+            "video": True,
+            "videoReceiveEnabled": True,
+            "audio": True,
+            "audioReceiveEnabled": True,
+            "video_params": {
+                "band_width": 0,
+                "codec": "H264",
+                "media_id": "vi-test",
+                "rtcp_id": "rc-test1",
+                "payload_type": 100,
+                "sampling_rate": 90000,
+            },
+            "audio_params": {
+                "band_width": 0,
+                "codec": "OPUS",
+                "media_id": "au-test",
+                "rtcp_id": "rc-test2",
+                "payload_type": 111,
+                "sampling_rate": 48000,
+            },
+        }
+        redirects = {
+            "video": True,
+            "videoReceiveEnabled": True,
+            "audio": True,
+            "audioReceiveEnabled": True,
+            "video_params": {
+                "band_width": 0,
+                "codec": "H264",
+                "media_id": "vi-test2",
+                "rtcp_id": "rc-test3",
+                "payload_type": 100,
+                "sampling_rate": 90000,
+            },
+            "audio_params": {
+                "band_width": 0,
+                "codec": "OPUS",
+                "media_id": "au-test2",
+                "rtcp_id": "rc-test3",
+                "payload_type": 111,
+                "sampling_rate": 48000,
+            },
+        }
+        option = CallOption(
+            PeerInfo("peer_id", "token"), "target_id", constraints, redirects
+        )
+        response = call("url_call_success", option)
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
