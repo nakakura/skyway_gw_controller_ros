@@ -88,21 +88,21 @@ def mocked_requests_put(*args, **kwargs):
 
 
 class TestCreatePeertResp(unittest.TestCase):
-    # create peer success
+    # open dataport
     @mock.patch("requests.get", side_effect=mocked_requests_get)
     def test_create_data_success(self, mock_post):
         response = create_data("url_create_data_success")
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
-    # create peer success
+    # close dataport
     @mock.patch("requests.delete", side_effect=mocked_requests_delete)
     def test_create_delete_success(self, mock_delete):
         response = delete_data("url_delete_data_success", DataId("data_id"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
-    # create peer success
+    # establish dataconnection success
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_create_delete_success(self, mock_post):
         options = DataConnectionOptions(
@@ -148,7 +148,7 @@ class TestCreatePeertResp(unittest.TestCase):
         self.assertEqual(response.json(), val)
         self.assertEqual(response.is_ok(), True)
 
-    # create peer success
+    # close dataconnection success
     @mock.patch("requests.delete", side_effect=mocked_requests_delete)
     def test_create_delete_success(self, mock_delete):
         response = disconnect(
