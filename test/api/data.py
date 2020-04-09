@@ -46,6 +46,11 @@ def mocked_requests_delete(*args, **kwargs):
 
     if args[0] == "url_delete_data_success/data/data_id":
         return MockResponse(args[0], {}, 204)
+    elif (
+        args[0]
+        == "url_delete_data_connection_success/data/connections/data_connection_id"
+    ):
+        return MockResponse(args[0], {}, 204)
 
     return MockResponse(args[0], {}, 410)
 
@@ -62,6 +67,22 @@ def mocked_requests_post(*args, **kwargs):
 
     if args[0] == "url_connections_success/data/connections":
         return MockResponse(args[0], kwargs["json"], 202)
+
+    return MockResponse(args[0], {}, 410)
+
+
+def mocked_requests_put(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, url, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+            self.url = url
+
+        def json(self):
+            return self.json_data
+
+    if args[0] == "url_redirect_success/data/connections/data_connection_id":
+        return MockResponse(args[0], kwargs["json"], 200)
 
     return MockResponse(args[0], {}, 410)
 
@@ -103,9 +124,7 @@ class TestCreatePeertResp(unittest.TestCase):
             DataId("data_id"),
             {"ip_v4": "127.0.0.1", "port": 10001},
         )
-        rospy.logerr(options)
         response = connect("url_connections_success", options)
-        rospy.logerr(json.dumps(response.json(), indent=4))
         val = {
             "peer_id": "peer_id",
             "token": "token",
@@ -126,8 +145,27 @@ class TestCreatePeertResp(unittest.TestCase):
             "params": {"data_id": "data_id"},
             "redirect_params": {"ip_v4": "127.0.0.1", "port": 10001,},
         }
-        rospy.logerr(json.dumps(val, indent=4))
         self.assertEqual(response.json(), val)
+        self.assertEqual(response.is_ok(), True)
+
+    # create peer success
+    @mock.patch("requests.delete", side_effect=mocked_requests_delete)
+    def test_create_delete_success(self, mock_delete):
+        response = disconnect(
+            "url_delete_data_connection_success", DataConnectionId("data_connection_id")
+        )
+        self.assertEqual(response.json(), {})
+        self.assertEqual(response.is_ok(), True)
+
+    # redirect success
+    @mock.patch("requests.put", side_effect=mocked_requests_put)
+    def test_create_redirect_success(self, mock_delete):
+        response = redirect(
+            "url_redirect_success",
+            DataId("data_id"),
+            DataConnectionId("data_connection_id"),
+            {},
+        )
         self.assertEqual(response.is_ok(), True)
 
 

@@ -19,6 +19,16 @@ class DataId:
         return self.__data_id
 
 
+class DataConnectionId:
+    def __init__(self, data_connection_id):
+        # type: (str) -> DataConnectionId
+        self.__data_connection_id = data_connection_id
+
+    def id(self):
+        # type: () -> str
+        return self.__data_connection_id
+
+
 class DataConnectionOptions:
     def __init__(self, peer_info, options, target_id, data_id, redirect_params):
         # type: (PeerInfo, dict, str, DataId, dict) -> DataConnectionOptions
@@ -60,3 +70,18 @@ def delete_data(url, data_id):
 def connect(url, options):
     # type: (str, DataConnectionOptions) -> ApiResponse
     return post("{}/data/connections".format(url), options.json(), 202)
+
+
+# This method call DELETE /data/connections API to close P2P datalink
+# http://35.200.46.204/#/2.data/data_connection_close
+def disconnect(url, data_connection_id):
+    # type: (str, DataConnectionId) -> ApiResponse
+    return delete("{}/data/connections/{}".format(url, data_connection_id.id()), 204)
+
+
+# This method call PUT /data/connections API to redirect data received from datalink
+# http://35.200.46.204/#/2.data/data_connection_put
+def redirect(url, data_id, data_connection_id, redirect):
+    # type: (str, DataId, DataConnectionId, dict) -> ApiResponse
+    body = {"feed_params": {data_id: data_id.id()}, "redirect_params": redirect}
+    return put("{}/data/connections/{}".format(url, data_connection_id.id()), body, 200)
