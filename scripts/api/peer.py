@@ -63,3 +63,16 @@ def listen_event(url, peer_info):
         "{}/peers/{}/events?token={}".format(url, peer_info.id(), peer_info.token()),
         200,
     )
+
+
+# This method call /peer/{peer_id}/status API to get the PeerObject's status
+# http://35.200.46.204/#/1.peers/peer_status
+def status(url, peer_info):
+    # type: (str, PeerInfo) -> ApiResponse
+    if not isinstance(url, str) or not isinstance(peer_info, PeerInfo):
+        return ApiResponse({}, {"error": "invalid type error"})
+
+    return get(
+        "{}/peers/{}/status?token={}".format(url, peer_info.id(), peer_info.token()),
+        200,
+    )

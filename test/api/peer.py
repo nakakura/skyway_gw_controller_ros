@@ -74,6 +74,8 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(args[0], _value, 200)
     elif args[0] == "url_listen_event_timeout/peers/peer_id/events?token=token":
         return MockResponse(args[0], {}, 408)
+    elif args[0] == "url_get_status_success/peers/peer_id/status?token=token":
+        return MockResponse(args[0], {"status": "value"}, 200)
 
     return MockResponse(args[0], {}, 410)
 
@@ -147,6 +149,13 @@ class TestCreatePeertResp(unittest.TestCase):
         )
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), False)
+
+    # get status success
+    @mock.patch("requests.get", side_effect=mocked_requests_get)
+    def test_delete_peer_success(self, mock_post):
+        response = status("url_get_status_success", PeerInfo("peer_id", "token"))
+        self.assertEqual(response.json(), {"status": "value"})
+        self.assertEqual(response.is_ok(), True)
 
 
 if __name__ == "__main__":
