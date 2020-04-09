@@ -32,6 +32,8 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(args[0], {}, 200)
     elif args[0] == "url_event_success/data/connections/data_connection_id/events":
         return MockResponse(args[0], {}, 200)
+    elif args[0] == "url_status_success/data/connections/data_connection_id/status":
+        return MockResponse(args[0], {}, 200)
 
     return MockResponse(args[0], {}, 410)
 
@@ -174,6 +176,12 @@ class TestCreatePeertResp(unittest.TestCase):
     @mock.patch("requests.get", side_effect=mocked_requests_get)
     def test_event_success(self, mock_get):
         response = events("url_event_success", DataConnectionId("data_connection_id"))
+        self.assertEqual(response.is_ok(), True)
+
+    # status success
+    @mock.patch("requests.get", side_effect=mocked_requests_get)
+    def test_event_success(self, mock_get):
+        response = status("url_status_success", DataConnectionId("data_connection_id"))
         self.assertEqual(response.is_ok(), True)
 
 

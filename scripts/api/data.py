@@ -94,3 +94,12 @@ def events(url, data_connection_id):
     return get(
         "{}/data/connections/{}/events".format(url, data_connection_id.id()), 200
     )
+
+
+# This method call GET /data/connections API to get events from datalink
+# http://35.200.46.204/#/2.data/data_connection_events
+def status(url, data_connection_id):
+    # type: (str, DataConnectionId) -> ApiResponse
+    return get(
+        "{}/data/connections/{}/status".format(url, data_connection_id.id()), 200
+    )
