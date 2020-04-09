@@ -50,6 +50,22 @@ def mocked_requests_delete(*args, **kwargs):
     return MockResponse(args[0], {}, 410)
 
 
+def mocked_requests_post(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, url, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+            self.url = url
+
+        def json(self):
+            return self.json_data
+
+    if args[0] == "url_connections_success/data/connections":
+        return MockResponse(args[0], kwargs["json"], 202)
+
+    return MockResponse(args[0], {}, 410)
+
+
 class TestCreatePeertResp(unittest.TestCase):
     # create peer success
     @mock.patch("requests.get", side_effect=mocked_requests_get)
@@ -63,6 +79,55 @@ class TestCreatePeertResp(unittest.TestCase):
     def test_create_delete_success(self, mock_delete):
         response = delete_data("url_delete_data_success", DataId("data_id"))
         self.assertEqual(response.json(), {})
+        self.assertEqual(response.is_ok(), True)
+
+    # create peer success
+    @mock.patch("requests.post", side_effect=mocked_requests_post)
+    def test_create_delete_success(self, mock_post):
+        options = DataConnectionOptions(
+            PeerInfo("peer_id", "token"),
+            {
+                "metadata": "string",
+                "serialization": "string",
+                "dcInit": {
+                    "ordered": True,
+                    "maxPacketLifeTime": 0,
+                    "maxRetransmits": 0,
+                    "protocol": "H264",
+                    "negotiated": True,
+                    "id": 0,
+                    "priority": "high",
+                },
+            },
+            "target_id",
+            DataId("data_id"),
+            {"ip_v4": "127.0.0.1", "port": 10001},
+        )
+        rospy.logerr(options)
+        response = connect("url_connections_success", options)
+        rospy.logerr(json.dumps(response.json(), indent=4))
+        val = {
+            "peer_id": "peer_id",
+            "token": "token",
+            "options": {
+                "metadata": "string",
+                "serialization": "string",
+                "dcInit": {
+                    "ordered": True,
+                    "maxPacketLifeTime": 0,
+                    "maxRetransmits": 0,
+                    "protocol": "H264",
+                    "negotiated": True,
+                    "id": 0,
+                    "priority": "high",
+                },
+            },
+            "target_id": "target_id",
+            "params": {"data_id": "data_id"},
+            "redirect_params": {"ip_v4": "127.0.0.1", "port": 10001,},
+        }
+        rospy.logerr(json.dumps(val, indent=4))
+        self.assertEqual(response.json(), val)
         self.assertEqual(response.is_ok(), True)
 
 
