@@ -48,6 +48,8 @@ def mocked_requests_delete(*args, **kwargs):
 
     if args[0] == "url_delete_media/media/media_id":
         return MockResponse(args[0], {}, 204)
+    elif args[0] == "url_delete_rtcp/media/rtcp/rtcp_id":
+        return MockResponse(args[0], {}, 204)
 
     return MockResponse(args[0], {}, 410)
 
@@ -71,6 +73,13 @@ class TestMediaApi(unittest.TestCase):
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_create_rtcp_success(self, mock_post):
         response = create_rtcp("url_create_rtcp")
+        self.assertEqual(response.json(), {})
+        self.assertEqual(response.is_ok(), True)
+
+    # close RtcpSocket
+    @mock.patch("requests.delete", side_effect=mocked_requests_delete)
+    def test_delete_rtcp_success(self, mock_post):
+        response = delete_rtcp("url_delete_rtcp", RtcpId("rtcp_id"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 

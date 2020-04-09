@@ -10,12 +10,22 @@ from common import post, get, put, delete, ApiResponse
 
 class MediaId:
     def __init__(self, media_id):
-        # type: (str) -> DataId
+        # type: (str) -> MediaId
         self.__media_id = media_id
 
     def id(self):
         # type: () -> str
         return self.__media_id
+
+
+class RtcpId:
+    def __init__(self, rtcp_id):
+        # type: (str) -> RtcpId
+        self.__rtcp_id = rtcp_id
+
+    def id(self):
+        # type: () -> str
+        return self.__rtcp_id
 
 
 # This method call POST /media API to open a MediaSocket
@@ -37,3 +47,10 @@ def delete_media(url, media_id):
 def create_rtcp(url):
     # type: (str) -> ApiResponse
     return post("{}/media/rtcp".format(url), {}, 201)
+
+
+# This method call POST /media/rtcp API to open a RtcpSocket
+# http://35.200.46.204/#/3.media/media_rtcp_create
+def delete_rtcp(url, rtcp_id):
+    # type: (str, RtcpId) -> ApiResponse
+    return delete("{}/media/rtcp/{}".format(url, rtcp_id.id()), 204)
