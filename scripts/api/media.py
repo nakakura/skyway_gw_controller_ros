@@ -58,6 +58,20 @@ class CallOption:
         }
 
 
+class AnswerOption:
+    def __init__(self, constraints, redirect_params):
+        # type: (dict, dict) -> AnswerOption
+        self.__constraints = constraints
+        self.__redirect_params = redirect_params
+
+    def json(self):
+        # type: () -> dict
+        return {
+            "constraints": self.__constraints,
+            "redirect_params": self.__redirect_params,
+        }
+
+
 # This method call POST /media API to open a MediaSocket
 # http://35.200.46.204/#/3.media/media
 def create_media(url, is_video):
@@ -90,7 +104,7 @@ def delete_rtcp(url, rtcp_id):
 # http://35.200.46.204/#/3.media/media_connection_create
 def call(url, call_option):
     # type: (str, CallOption) -> ApiResponse
-    return post("{}/media/connections".format(url), {}, 202)
+    return post("{}/media/connections".format(url), call_option.json(), 202)
 
 
 # This method call DELETE /media/connections API to close P2P link
@@ -98,3 +112,14 @@ def call(url, call_option):
 def disconnect(url, media_connection_id):
     # type: (str, MediaConnectionId) -> ApiResponse
     return delete("{}/media/connections/{}".format(url, media_connection_id.id()), 204)
+
+
+# This method call POST /media/connections/{media_connection_id}/answer API to accept P2P link establishment
+# http://35.200.46.204/#/3.media/media_connection_close
+def answer(url, media_connection_id, answer_option):
+    # type: (str, MediaConnectionId, AnswerOption) -> ApiResponse
+    return post(
+        "{}/media/connections/{}/answer".format(url, media_connection_id.id()),
+        answer_option.json(),
+        202,
+    )

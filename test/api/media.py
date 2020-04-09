@@ -35,6 +35,15 @@ def mocked_requests_post(*args, **kwargs):
         return MockResponse(args[0], {}, 201)
     elif args[0] == "url_call_success/media/connections":
         return MockResponse(args[0], {}, 202)
+    elif args[0] == "url_answer_success/media/connections/media_connection_id/answer":
+        return MockResponse(
+            args[0],
+            {
+                "command_type": "MEDIA_CONNECTION_ANSWER",
+                "params": {"video_id": "vi-test", "audio_id": "au-test",},
+            },
+            202,
+        )
 
     return MockResponse(args[0], {}, 410)
 
@@ -149,6 +158,66 @@ class TestMediaApi(unittest.TestCase):
             "url_disconnect_success", MediaConnectionId("media_connection_id")
         )
         self.assertEqual(response.json(), {})
+        self.assertEqual(response.is_ok(), True)
+
+    # call success
+    @mock.patch("requests.post", side_effect=mocked_requests_post)
+    def test_answer_success(self, mock_post):
+        constraints = {
+            "video": True,
+            "videoReceiveEnabled": True,
+            "audio": True,
+            "audioReceiveEnabled": True,
+            "video_params": {
+                "band_width": 0,
+                "codec": "H264",
+                "media_id": "vi-test",
+                "rtcp_id": "rc-test1",
+                "payload_type": 100,
+                "sampling_rate": 90000,
+            },
+            "audio_params": {
+                "band_width": 0,
+                "codec": "OPUS",
+                "media_id": "au-test",
+                "rtcp_id": "rc-test2",
+                "payload_type": 111,
+                "sampling_rate": 48000,
+            },
+        }
+        redirects = {
+            "video": True,
+            "videoReceiveEnabled": True,
+            "audio": True,
+            "audioReceiveEnabled": True,
+            "video_params": {
+                "band_width": 0,
+                "codec": "H264",
+                "media_id": "vi-test2",
+                "rtcp_id": "rc-test3",
+                "payload_type": 100,
+                "sampling_rate": 90000,
+            },
+            "audio_params": {
+                "band_width": 0,
+                "codec": "OPUS",
+                "media_id": "au-test2",
+                "rtcp_id": "rc-test3",
+                "payload_type": 111,
+                "sampling_rate": 48000,
+            },
+        }
+        option = AnswerOption(constraints, redirects)
+        response = answer(
+            "url_answer_success", MediaConnectionId("media_connection_id"), option
+        )
+        self.assertEqual(
+            response.json(),
+            {
+                "command_type": "MEDIA_CONNECTION_ANSWER",
+                "params": {"video_id": "vi-test", "audio_id": "au-test",},
+            },
+        )
         self.assertEqual(response.is_ok(), True)
 
 
