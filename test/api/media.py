@@ -34,11 +34,34 @@ def mocked_requests_post(*args, **kwargs):
     return MockResponse(args[0], {}, 410)
 
 
+def mocked_requests_delete(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, url, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+            self.url = url
+
+        def json(self):
+            return self.json_data
+
+    if args[0] == "url_delete_media/media/media_id":
+        return MockResponse(args[0], {}, 204)
+
+    return MockResponse(args[0], {}, 410)
+
+
 class TestMediaApi(unittest.TestCase):
-    # open dataport
+    # open MediaSocket
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_create_media_success(self, mock_post):
         response = create_media("url_create_media", True)
+        self.assertEqual(response.json(), {})
+        self.assertEqual(response.is_ok(), True)
+
+    # delete MediaSocket
+    @mock.patch("requests.delete", side_effect=mocked_requests_delete)
+    def test_create_media_success(self, mock_post):
+        response = delete_media("url_delete_media", MediaId("media_id"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
