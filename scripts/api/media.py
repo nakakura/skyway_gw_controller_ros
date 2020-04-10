@@ -123,3 +123,12 @@ def answer(url, media_connection_id, answer_option):
         answer_option.json(),
         202,
     )
+
+
+# This method call POST /media/connections/{media_connection_id}/pli API to send PLI message to neighbour
+# http://35.200.46.204/#/3.media/media_connection_pli
+def pli(url, media_connection_id, body):
+    # type: (str, MediaConnectionId, dict) -> ApiResponse
+    return post(
+        "{}/media/connections/{}/pli".format(url, media_connection_id.id()), body, 201,
+    )
