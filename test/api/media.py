@@ -98,6 +98,10 @@ def mocked_requests_get(*args, **kwargs):
             },
             200,
         )
+    elif args[0] == "url_status_success/media/connections/media_connection_id/status":
+        return MockResponse(
+            args[0], {"open": True, "metadata": {}, "remote_id": "string"}, 200,
+        )
 
     return MockResponse(args[0], {}, 410)
 
@@ -225,6 +229,17 @@ class TestMediaApi(unittest.TestCase):
                 "close_options": {},
                 "error_message": "string",
             },
+        )
+        self.assertEqual(response.is_ok(), True)
+
+    # status success
+    @mock.patch("requests.get", side_effect=mocked_requests_get)
+    def test_status_success(self, mock_get):
+        response = status(
+            "url_status_success", MediaConnectionId("media_connection_id")
+        )
+        self.assertEqual(
+            response.json(), {"metadata": {}, "open": True, "remote_id": "string"}
         )
         self.assertEqual(response.is_ok(), True)
 

@@ -141,3 +141,12 @@ def event(url, media_connection_id):
     return get(
         "{}/media/connections/{}/events".format(url, media_connection_id.id()), 200
     )
+
+
+# This method call GET /media/connections/{media_connection_id}/status API to get status of MediaChannel
+# http://35.200.46.204/#/3.media/media_connection_status
+def status(url, media_connection_id):
+    # type: (str, MediaConnectionId) -> ApiResponse
+    return get(
+        "{}/media/connections/{}/status".format(url, media_connection_id.id()), 200
+    )
