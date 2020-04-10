@@ -132,3 +132,12 @@ def pli(url, media_connection_id, body):
     return post(
         "{}/media/connections/{}/pli".format(url, media_connection_id.id()), body, 201,
     )
+
+
+# This method call POST /media/connections/{media_connection_id}/pli API to send PLI message to neighbour
+# http://35.200.46.204/#/3.media/media_connection_pli
+def event(url, media_connection_id):
+    # type: (str, MediaConnectionId) -> ApiResponse
+    return get(
+        "{}/media/connections/{}/events".format(url, media_connection_id.id()), 200
+    )

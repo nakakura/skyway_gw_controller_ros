@@ -28,7 +28,6 @@ def mocked_requests_post(*args, **kwargs):
         def json(self):
             return self.json_data
 
-    rospy.logerr(args[0])
     if args[0] == "url_create_media/media":
         return MockResponse(args[0], {}, 201)
     elif args[0] == "url_create_rtcp/media/rtcp":
@@ -66,6 +65,39 @@ def mocked_requests_delete(*args, **kwargs):
         return MockResponse(args[0], {}, 204)
     elif args[0] == "url_disconnect_success/media/connections/media_connection_id":
         return MockResponse(args[0], {}, 204)
+
+    return MockResponse(args[0], {}, 410)
+
+
+def mocked_requests_get(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, url, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+            self.url = url
+
+        def json(self):
+            return self.json_data
+
+    if args[0] == "url_event_success/media/connections/media_connection_id/events":
+        return MockResponse(
+            args[0],
+            {
+                "event": "TYPE_OF_EVENT",
+                "stream_options": {
+                    "is_video": True,
+                    "stream_params": {
+                        "media_id": "vi-4d053831-5dc2-461b-a358-d062d6115216",
+                        "port": 10001,
+                        "ip_v4": "string",
+                        "ip_v6": "string",
+                    },
+                },
+                "close_options": {},
+                "error_message": "string",
+            },
+            200,
+        )
 
     return MockResponse(args[0], {}, 410)
 
@@ -163,6 +195,7 @@ class TestMediaApi(unittest.TestCase):
         self.assertEqual(response.is_ok(), True)
 
     # call success
+    # FIXME
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_pli_success(self, mock_post):
         options = {"port": 10001, "ip_v4": "127.0.0.1"}
@@ -170,6 +203,29 @@ class TestMediaApi(unittest.TestCase):
             "url_pli_success", MediaConnectionId("media_connection_id"), options
         )
         self.assertEqual(response.json(), {})
+        self.assertEqual(response.is_ok(), True)
+
+    # events success
+    @mock.patch("requests.get", side_effect=mocked_requests_get)
+    def test_event_success(self, mock_get):
+        response = event("url_event_success", MediaConnectionId("media_connection_id"))
+        self.assertEqual(
+            response.json(),
+            {
+                "event": "TYPE_OF_EVENT",
+                "stream_options": {
+                    "is_video": True,
+                    "stream_params": {
+                        "media_id": "vi-4d053831-5dc2-461b-a358-d062d6115216",
+                        "port": 10001,
+                        "ip_v4": "string",
+                        "ip_v6": "string",
+                    },
+                },
+                "close_options": {},
+                "error_message": "string",
+            },
+        )
         self.assertEqual(response.is_ok(), True)
 
 
