@@ -23,7 +23,6 @@ def runloop(peer_info, control_queue, media_closing_queue, data_closing_queue):
             rate.sleep()
             message = control_queue.get(timeout=0.2)
             if message["type"] == "APP_CLOSING":
-                rospy.logerr("app closing in runloop")
                 media_closing_queue.put({"type": "APP_CLOSING"})
                 data_closing_queue.put({"type": "APP_CLOSING"})
                 break
@@ -43,7 +42,6 @@ def listen_peer_events(peer_info, control_queue, media_event_queue, data_event_q
     # type: (PeerInfo, Queue, Queue, Queue) -> None
     # polling while ros is running
     while True:
-        rospy.logerr("listen peer event1")
         try:
             message = control_queue.get(timeout=0.1)
             if message["type"] == "APP_CLOSING":
@@ -54,7 +52,6 @@ def listen_peer_events(peer_info, control_queue, media_event_queue, data_event_q
             rospy.logerr(sys.exc_info())
             rospy.logerr("We lacked patience and got a multiprocessing.TimeoutError")
 
-        rospy.logerr("listen peer event2")
         # get an event
         resp = listen_event(peer_info)
         if not resp.is_ok():
@@ -66,7 +63,6 @@ def listen_peer_events(peer_info, control_queue, media_event_queue, data_event_q
                 raise err
 
         json = resp.json()
-        rospy.logerr(json)
         if not "event" in json:
             continue
         elif json["event"] == "CLOSE":
@@ -143,7 +139,6 @@ def main():
         # keep checking rospy status
         while not rospy.is_shutdown():
             rate.sleep()
-        rospy.logerr("hogehoge=================")
         # exit rospy
         loop_control_queue.put({"type": "APP_CLOSING"})
         peer_control_queue.put({"type": "APP_CLOSING"})

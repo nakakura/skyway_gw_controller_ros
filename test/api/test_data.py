@@ -39,7 +39,7 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(args[0], {}, 200)
     elif args[0] == "url_status_success/data/connections/data_connection_id/status":
         return MockResponse(args[0], {}, 200)
-    elif args[0] == "test_onevent_connect/data/connections/dc_test/status":
+    elif args[0] == "test_onevent_connect_not_intend/data/connections/dc_test/status":
         return MockResponse(
             args[0],
             {
@@ -50,7 +50,7 @@ def mocked_requests_get(*args, **kwargs):
                 u"serialization": u"BINARY",
                 u"buffersize": 0,
                 u"open": False,
-                u"metadata": "data",
+                u"metadata": u"not intend data",
             },
             200,
         )
@@ -74,6 +74,8 @@ def mocked_requests_delete(*args, **kwargs):
         args[0]
         == "url_delete_data_connection_success/data/connections/data_connection_id"
     ):
+        return MockResponse(args[0], {}, 204)
+    elif args[0] == "test_onevent_connect_not_intend/data/connections/dc_test":
         return MockResponse(args[0], {}, 204)
 
     return MockResponse(args[0], {}, 410)
@@ -216,19 +218,34 @@ class TestDataApi(unittest.TestCase):
     # events connect
     # Just Close the loop
     def test_onevent_close(self):
+        config = [{"name": "data"}, {"name": "data2"}]
         queue = multiprocessing.Queue()
         queue.put({"type": "APP_CLOSING"})
-        on_events({"name": "data"}, queue)
+        mock_lib = mock.MagicMock()
+        with patch("scripts.api.data.on_connect", side_effect=mock_lib):
+            on_events(config, queue)
+            self.assert_(not mock_lib.called, "on_connect is called")
 
     # events connect
     # Just Close the loop
     @mock.patch("requests.get", side_effect=mocked_requests_get)
-    def test_onevent_connect(self, mock_get):
-        const.URL = "test_onevent_connect"
+    def test_onevent_connect_status_check_success(self, mock_get):
+        const.URL = "test_onevent_connect_not_intend"
         queue = multiprocessing.Queue()
         queue.put({"type": "CONNECTION", "data_connection_id": "dc_test"})
         queue.put({"type": "APP_CLOSING"})
-        on_events({"name": "data"}, queue)
+        mock_lib = mock.MagicMock()
+        with patch("scripts.api.data.on_connect", side_effect=mock_lib):
+            config = [{"name": "data"}, {"name": "data2"}]
+            on_events(config, queue)
+            self.assert_(mock_lib.called, "on_connect is not called")
+            rospy.logerr(mock_lib.call_args[0][0])
+            self.assertEqual(
+                mock_lib.call_args[0][0], [{"name": "data"}, {"name": "data2"}]
+            )
+            self.assertEqual(
+                mock_lib.call_args[0][1].id(), DataConnectionId("dc_test").id()
+            )
 
 
 if __name__ == "__main__":

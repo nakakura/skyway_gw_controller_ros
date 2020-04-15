@@ -114,23 +114,32 @@ def status(data_connection_id):
     )
 
 
+# FIXME not test yet
+def on_connect(config, data_connection_id, key):
+    # type: (list, DataConnectionId, str) -> None
+    for parameter in config:
+        if parameter["name"] == key:
+            # Anticipated connection
+            # redirect as configuration
+            # redirect(parameter, data_connection_id)
+            return
+    # not intended connection
+    # close it
+    _resp = disconnect(data_connection_id).json()
+
+
 def on_events(config, queue):
-    # type: (dict, multiprocessing.Queue) -> None
+    # type: (list, multiprocessing.Queue) -> None
     # polling while ros is running
     while True:
         try:
             message = queue.get(timeout=0.2)
             if message["type"] == "CONNECTION":
-                # FIXME
-                data_connection_id = message["data_connection_id"]
-                resp = status(const.URL, DataConnectionId(data_connection_id)).json()
-                if "data" == resp["metadata"]:
-                    pass
-                else:
-                    pass
+                data_connection_id = DataConnectionId(message["data_connection_id"])
+                resp = status(data_connection_id).json()
+                on_connect(config, data_connection_id, resp["metadata"])
                 continue
             elif message["type"] == "APP_CLOSING":
-                rospy.logerr("break")
                 break
         except Queue.Empty as e:
             continue
