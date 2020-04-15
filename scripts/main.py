@@ -8,20 +8,18 @@ import time
 import multiprocessing
 import Queue
 import random
-
-from api.peer import PeerInfo, create_peer, delete_peer, listen_event
 import const
 
-is_running = True
+from api.peer import PeerInfo, create_peer, delete_peer, listen_event
+import common
 
 # This method is responsible for deleting peer object when rospy close
 def runloop(peer_info):
     # type: (PeerInfo) -> None
-    global is_running
     # wait for ros termination
     i = 0
     rate = rospy.Rate(10)  # 10hz
-    while is_running:
+    while common.is_running:
         rate.sleep()
     # delete Peer Object
     resp = delete_peer(const.URL, peer_info)
@@ -31,10 +29,9 @@ def runloop(peer_info):
 
 def listen_peer_events(peer_info, media_event_queue, data_event_queue):
     # type: (PeerInfo, multiprocessing.Queue, multiprocessing.Queue) -> None
-    global is_running
     rate = rospy.Rate(10)  # 10hz
     # polling while ros is running
-    while is_running:
+    while common.is_running:
         # get an event
         resp = listen_event(const.URL, peer_info)
         if not resp.is_ok():
@@ -61,10 +58,9 @@ def listen_peer_events(peer_info, media_event_queue, data_event_queue):
 
 def data(queue):
     # type: (multiprocessing.Queue) -> None
-    global is_running
     rate = rospy.Rate(10)  # 10hz
     # polling while ros is running
-    while is_running:
+    while common.is_running:
         try:
             message = queue.get(timeout=0.2)
             if message["type"] == "CONNECTION":
@@ -78,10 +74,9 @@ def data(queue):
 
 def media(queue):
     # type: (multiprocessing.Queue) -> None
-    global is_running
     rate = rospy.Rate(10)  # 10hz
     # polling while ros is running
-    while is_running:
+    while common.is_running:
         try:
             message = queue.get(timeout=0.2)
         except Queue.Empty as e:
@@ -95,8 +90,6 @@ def main():
     if not "API_KEY" in os.environ:
         raise rospy.ROSException, "Set API_KEY in environments"
 
-    # flag to check rospy is running
-    global is_running
     # api key of SkyWay
     const.API_KEY = os.environ["API_KEY"]
     # SkyWay WebRTC Gateway endpoint
@@ -127,7 +120,7 @@ def main():
         while not rospy.is_shutdown():
             rate.sleep()
         # exit rospy
-        is_running = False
+        common.is_running = False
         closing_future.result()
         peer_event_future.result()
         data_future.result()
