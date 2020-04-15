@@ -15,7 +15,7 @@ from os import path
 import requests
 
 sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__)))))
-from scripts.api.common import *
+from scripts.api.rest import *
 
 
 def mocked_requests_post(*args, **kwargs):

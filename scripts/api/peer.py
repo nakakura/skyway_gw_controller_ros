@@ -5,7 +5,7 @@ import json
 import rospy
 from typing import NewType
 
-from common import post, get, put, delete, ApiResponse
+from rest import post, get, put, delete, ApiResponse
 
 
 class PeerInfo:

@@ -1,6 +1,6 @@
 <launch>
-    <test test-name="api_common" pkg="skyway" type="common.py" />
-    <test test-name="peer_api" pkg="skyway" type="peer.py" />
-    <test test-name="data_api" pkg="skyway" type="data.py" />
-    <test test-name="media_api" pkg="skyway" type="media.py" />
+    <test test-name="api_common" pkg="skyway" type="test_rest.py" />
+    <test test-name="peer_api" pkg="skyway" type="test_peer.py" />
+    <test test-name="data_api" pkg="skyway" type="test_data.py" />
+    <test test-name="media_api" pkg="skyway" type="test_media.py" />
 </launch>

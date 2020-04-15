@@ -17,6 +17,10 @@ import requests
 sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__)))))
 from scripts.api.peer import *
 
+sys.path.append(
+    path.dirname(path.dirname(path.dirname(path.abspath(__file__)))) + "/scripts"
+)
+
 
 def mocked_requests_post(*args, **kwargs):
     class MockResponse:

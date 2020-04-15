@@ -91,7 +91,7 @@ def media(queue):
             rospy.logerr("We lacked patience and got a multiprocessing.TimeoutError")
 
 
-def skyway():
+def main():
     if not "API_KEY" in os.environ:
         raise rospy.ROSException, "Set API_KEY in environments"
 
@@ -140,6 +140,6 @@ def skyway():
 
 if __name__ == "__main__":
     try:
-        skyway()
+        main()
     except rospy.ROSInterruptException:
         pass
