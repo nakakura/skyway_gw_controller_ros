@@ -36,10 +36,11 @@ def runloop(queue, peer_info):
         raise resp.err()
 
 
-def listen_peer_events(control_queue, peer_info, media_event_queue, data_event_queue):
-    # type: (Queue, PeerInfo, multiprocessing.Queue, multiprocessing.Queue) -> None
+def listen_peer_events(peer_info, control_queue, media_event_queue, data_event_queue):
+    # type: (PeerInfo, Queue, Queue, Queue) -> None
     # polling while ros is running
     while True:
+        rospy.logerr("listen peer event1")
         try:
             message = control_queue.get(timeout=0.1)
             if message["type"] == "APP_CLOSING":
@@ -47,11 +48,12 @@ def listen_peer_events(control_queue, peer_info, media_event_queue, data_event_q
                 media_event_queue.put({"type": "APP_CLOSING"})
                 break
         except Queue.Empty as e:
-            continue
+            pass
         except Exception as e:
             rospy.logerr(sys.exc_info())
             rospy.logerr("We lacked patience and got a multiprocessing.TimeoutError")
 
+        rospy.logerr("listen peer event2")
         # get an event
         resp = listen_event(const.URL, peer_info)
         if not resp.is_ok():
@@ -63,6 +65,7 @@ def listen_peer_events(control_queue, peer_info, media_event_queue, data_event_q
                 raise err
 
         json = resp.json()
+        rospy.logerr(json)
         if not "event" in json:
             continue
         elif json["event"] == "CLOSE":
@@ -127,13 +130,13 @@ def main():
         # poll events from PeerObject
         peer_event_future = executor.submit(
             listen_peer_events,
-            peer_control_queue,
             peer_info,
+            peer_control_queue,
             media_event_queue,
             data_event_queue,
         )
 
-        data_future = executor.submit(data.on_events, data_event_queue)
+        data_future = executor.submit(data.on_events, {}, data_event_queue)
         media_future = executor.submit(media, media_event_queue)
         # keep checking rospy status
         while not rospy.is_shutdown():

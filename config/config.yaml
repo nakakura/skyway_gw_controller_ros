@@ -1,0 +1,8 @@
+data:
+  - name: "data"
+    maxRetransmits: 0
+    ordered: false
+media:
+  - name: "media"
+    video: true
+    audio: true

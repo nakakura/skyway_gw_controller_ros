@@ -13,9 +13,14 @@ import mock
 from mock import patch
 from os import path
 import requests
+import multiprocessing
 
 sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__)))))
+sys.path.append(
+    path.dirname(path.dirname(path.dirname(path.abspath(__file__)))) + "/scripts"
+)
 from scripts.api.data import *
+import const
 
 
 def mocked_requests_get(*args, **kwargs):
@@ -34,6 +39,21 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(args[0], {}, 200)
     elif args[0] == "url_status_success/data/connections/data_connection_id/status":
         return MockResponse(args[0], {}, 200)
+    elif args[0] == "test_onevent_connect/data/connections/dc_test/status":
+        return MockResponse(
+            args[0],
+            {
+                u"type": u"DATA",
+                u"reliable": False,
+                u"remote_id": u"data_caller",
+                u"label": u"c_lfcag5dg1ufo47c6v6awi2j4i",
+                u"serialization": u"BINARY",
+                u"buffersize": 0,
+                u"open": False,
+                u"metadata": "data",
+            },
+            200,
+        )
 
     return MockResponse(args[0], {}, 410)
 
@@ -183,6 +203,30 @@ class TestDataApi(unittest.TestCase):
     def test_status_success(self, mock_get):
         response = status("url_status_success", DataConnectionId("data_connection_id"))
         self.assertEqual(response.is_ok(), True)
+
+    # events connect
+    # Anticipated Connection
+    # def test_onevent_timeout(self):
+    #     with self.assertRaises(Exception):
+    #         queue = multiprocessing.Queue()
+    #         on_events({"name": "data"}, queue)
+
+    # events connect
+    # Just Close the loop
+    def test_onevent_close(self):
+        queue = multiprocessing.Queue()
+        queue.put({"type": "APP_CLOSING"})
+        on_events({"name": "data"}, queue)
+
+    # events connect
+    # Just Close the loop
+    @mock.patch("requests.get", side_effect=mocked_requests_get)
+    def test_onevent_connect(self, mock_get):
+        const.URL = "test_onevent_connect"
+        queue = multiprocessing.Queue()
+        queue.put({"type": "CONNECTION", "data_connection_id": "dc_test"})
+        queue.put({"type": "APP_CLOSING"})
+        on_events({"name": "data"}, queue)
 
 
 if __name__ == "__main__":

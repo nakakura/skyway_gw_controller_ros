@@ -8,6 +8,7 @@ import simplejson as json
 import multiprocessing
 import Queue
 import sys
+import const
 
 from rest import post, get, put, delete, ApiResponse
 from peer import PeerInfo
@@ -109,16 +110,23 @@ def status(url, data_connection_id):
     )
 
 
-def on_events(queue):
-    # type: (multiprocessing.Queue) -> None
-    rate = rospy.Rate(10)  # 10hz
+def on_events(config, queue):
+    # type: (dict, multiprocessing.Queue) -> None
     # polling while ros is running
     while True:
         try:
             message = queue.get(timeout=0.2)
             if message["type"] == "CONNECTION":
+                # FIXME
+                data_connection_id = message["data_connection_id"]
+                resp = status(const.URL, DataConnectionId(data_connection_id)).json()
+                if "data" == resp["metadata"]:
+                    pass
+                else:
+                    pass
                 continue
             elif message["type"] == "APP_CLOSING":
+                rospy.logerr("break")
                 break
         except Queue.Empty as e:
             continue
