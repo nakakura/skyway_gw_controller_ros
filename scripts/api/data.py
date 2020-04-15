@@ -58,55 +58,59 @@ class DataConnectionOptions:
 
 # This method call GET /data API to open a DataSocket
 # http://35.200.46.204/#/2.data/data
-def create_data(url):
-    # type: (str) -> ApiResponse
-    return get("{}/data".format(url), 200)
+def create_data():
+    # type: () -> ApiResponse
+    return get("{}/data".format(const.URL), 200)
 
 
 # This method call DELETE /data API to delete a DataSocket
 # http://35.200.46.204/#/2.data/data
-def delete_data(url, data_id):
-    # type: (str, DataId) -> ApiResponse
-    return delete("{}/data/{}".format(url, data_id.id()), 204)
+def delete_data(data_id):
+    # type: (DataId) -> ApiResponse
+    return delete("{}/data/{}".format(const.URL, data_id.id()), 204)
 
 
 # This method call POST /data/connections API to establish P2P datalink
 # http://35.200.46.204/#/2.data/data_connections_create
-def connect(url, options):
-    # type: (str, DataConnectionOptions) -> ApiResponse
-    return post("{}/data/connections".format(url), options.json(), 202)
+def connect(options):
+    # type: (DataConnectionOptions) -> ApiResponse
+    return post("{}/data/connections".format(const.URL), options.json(), 202)
 
 
 # This method call DELETE /data/connections API to close P2P datalink
 # http://35.200.46.204/#/2.data/data_connection_close
-def disconnect(url, data_connection_id):
-    # type: (str, DataConnectionId) -> ApiResponse
-    return delete("{}/data/connections/{}".format(url, data_connection_id.id()), 204)
+def disconnect(data_connection_id):
+    # type: (DataConnectionId) -> ApiResponse
+    return delete(
+        "{}/data/connections/{}".format(const.URL, data_connection_id.id()), 204
+    )
 
 
 # This method call PUT /data/connections API to redirect data received from datalink
 # http://35.200.46.204/#/2.data/data_connection_put
-def redirect(url, data_id, data_connection_id, redirect):
-    # type: (str, DataId, DataConnectionId, dict) -> ApiResponse
+def redirect(data_id, data_connection_id, redirect):
+    # type: (DataId, DataConnectionId, dict) -> ApiResponse
     body = {"feed_params": {data_id: data_id.id()}, "redirect_params": redirect}
-    return put("{}/data/connections/{}".format(url, data_connection_id.id()), body, 200)
-
-
-# This method call GET /data/connections API to get events from datalink
-# http://35.200.46.204/#/2.data/data_connection_events
-def events(url, data_connection_id):
-    # type: (str, DataConnectionId) -> ApiResponse
-    return get(
-        "{}/data/connections/{}/events".format(url, data_connection_id.id()), 200
+    return put(
+        "{}/data/connections/{}".format(const.URL, data_connection_id.id()), body, 200
     )
 
 
 # This method call GET /data/connections API to get events from datalink
 # http://35.200.46.204/#/2.data/data_connection_events
-def status(url, data_connection_id):
-    # type: (str, DataConnectionId) -> ApiResponse
+def events(data_connection_id):
+    # type: (DataConnectionId) -> ApiResponse
     return get(
-        "{}/data/connections/{}/status".format(url, data_connection_id.id()), 200
+        "{}/data/connections/{}/events".format(const.URL, data_connection_id.id()), 200
+    )
+
+
+# This method call GET /data/connections API to get events from datalink
+# http://35.200.46.204/#/2.data/data_connection_events
+def status(data_connection_id):
+    # type: (DataConnectionId) -> ApiResponse
+    return get(
+        "{}/data/connections/{}/status".format(const.URL, data_connection_id.id()), 200
     )
 
 

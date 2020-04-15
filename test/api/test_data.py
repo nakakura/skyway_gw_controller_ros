@@ -115,14 +115,16 @@ class TestDataApi(unittest.TestCase):
     # open dataport
     @mock.patch("requests.get", side_effect=mocked_requests_get)
     def test_create_data_success(self, mock_post):
-        response = create_data("url_create_data_success")
+        const.URL = "url_create_data_success"
+        response = create_data()
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
     # close dataport
     @mock.patch("requests.delete", side_effect=mocked_requests_delete)
     def test_delete_data_success(self, mock_delete):
-        response = delete_data("url_delete_data_success", DataId("data_id"))
+        const.URL = "url_delete_data_success"
+        response = delete_data(DataId("data_id"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
@@ -148,7 +150,8 @@ class TestDataApi(unittest.TestCase):
             DataId("data_id"),
             {"ip_v4": "127.0.0.1", "port": 10001},
         )
-        response = connect("url_connections_success", options)
+        const.URL = "url_connections_success"
+        response = connect(options)
         val = {
             "peer_id": "peer_id",
             "token": "token",
@@ -175,33 +178,32 @@ class TestDataApi(unittest.TestCase):
     # close dataconnection success
     @mock.patch("requests.delete", side_effect=mocked_requests_delete)
     def test_disconnect_success(self, mock_delete):
-        response = disconnect(
-            "url_delete_data_connection_success", DataConnectionId("data_connection_id")
-        )
+        const.URL = "url_delete_data_connection_success"
+        response = disconnect(DataConnectionId("data_connection_id"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
     # redirect success
     @mock.patch("requests.put", side_effect=mocked_requests_put)
     def test_redirect_success(self, mock_delete):
+        const.URL = "url_redirect_success"
         response = redirect(
-            "url_redirect_success",
-            DataId("data_id"),
-            DataConnectionId("data_connection_id"),
-            {},
+            DataId("data_id"), DataConnectionId("data_connection_id"), {},
         )
         self.assertEqual(response.is_ok(), True)
 
     # events success
     @mock.patch("requests.get", side_effect=mocked_requests_get)
     def test_event_success(self, mock_get):
-        response = events("url_event_success", DataConnectionId("data_connection_id"))
+        const.URL = "url_event_success"
+        response = events(DataConnectionId("data_connection_id"))
         self.assertEqual(response.is_ok(), True)
 
     # status success
     @mock.patch("requests.get", side_effect=mocked_requests_get)
     def test_status_success(self, mock_get):
-        response = status("url_status_success", DataConnectionId("data_connection_id"))
+        const.URL = "url_status_success"
+        response = status(DataConnectionId("data_connection_id"))
         self.assertEqual(response.is_ok(), True)
 
     # events connect

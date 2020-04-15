@@ -15,7 +15,11 @@ from os import path
 import requests
 
 sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__)))))
+sys.path.append(
+    path.dirname(path.dirname(path.dirname(path.abspath(__file__)))) + "/scripts"
+)
 from scripts.api.media import *
+import const
 
 
 def mocked_requests_post(*args, **kwargs):
@@ -110,28 +114,32 @@ class TestMediaApi(unittest.TestCase):
     # open MediaSocket
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_create_media_success(self, mock_post):
-        response = create_media("url_create_media", True)
+        const.URL = "url_create_media"
+        response = create_media(True)
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
     # delete MediaSocket
     @mock.patch("requests.delete", side_effect=mocked_requests_delete)
     def test_create_media_success(self, mock_post):
-        response = delete_media("url_delete_media", MediaId("media_id"))
+        const.URL = "url_delete_media"
+        response = delete_media(MediaId("media_id"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
     # create RtcpSocket
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_create_rtcp_success(self, mock_post):
-        response = create_rtcp("url_create_rtcp")
+        const.URL = "url_create_rtcp"
+        response = create_rtcp()
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
     # close RtcpSocket
     @mock.patch("requests.delete", side_effect=mocked_requests_delete)
     def test_delete_rtcp_success(self, mock_post):
-        response = delete_rtcp("url_delete_rtcp", RtcpId("rtcp_id"))
+        const.URL = "url_delete_rtcp"
+        response = delete_rtcp(RtcpId("rtcp_id"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
@@ -185,16 +193,16 @@ class TestMediaApi(unittest.TestCase):
         option = CallOption(
             PeerInfo("peer_id", "token"), "target_id", constraints, redirects
         )
-        response = call("url_call_success", option)
+        const.URL = "url_call_success"
+        response = call(option)
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
     # disconnect success
     @mock.patch("requests.delete", side_effect=mocked_requests_delete)
     def test_delete_rtcp_success(self, mock_post):
-        response = disconnect(
-            "url_disconnect_success", MediaConnectionId("media_connection_id")
-        )
+        const.URL = "url_disconnect_success"
+        response = disconnect(MediaConnectionId("media_connection_id"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
@@ -202,17 +210,17 @@ class TestMediaApi(unittest.TestCase):
     # FIXME
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_pli_success(self, mock_post):
+        const.URL = "url_pli_success"
         options = {"port": 10001, "ip_v4": "127.0.0.1"}
-        response = pli(
-            "url_pli_success", MediaConnectionId("media_connection_id"), options
-        )
+        response = pli(MediaConnectionId("media_connection_id"), options)
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
     # events success
     @mock.patch("requests.get", side_effect=mocked_requests_get)
     def test_event_success(self, mock_get):
-        response = event("url_event_success", MediaConnectionId("media_connection_id"))
+        const.URL = "url_event_success"
+        response = event(MediaConnectionId("media_connection_id"))
         self.assertEqual(
             response.json(),
             {
@@ -235,9 +243,8 @@ class TestMediaApi(unittest.TestCase):
     # status success
     @mock.patch("requests.get", side_effect=mocked_requests_get)
     def test_status_success(self, mock_get):
-        response = status(
-            "url_status_success", MediaConnectionId("media_connection_id")
-        )
+        const.URL = "url_status_success"
+        response = status(MediaConnectionId("media_connection_id"))
         self.assertEqual(
             response.json(), {"metadata": {}, "open": True, "remote_id": "string"}
         )

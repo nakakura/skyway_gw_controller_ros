@@ -15,11 +15,11 @@ from os import path
 import requests
 
 sys.path.append(path.dirname(path.dirname(path.dirname(path.abspath(__file__)))))
-from scripts.api.peer import *
-
 sys.path.append(
     path.dirname(path.dirname(path.dirname(path.abspath(__file__)))) + "/scripts"
 )
+from scripts.api.peer import *
+import const
 
 
 def mocked_requests_post(*args, **kwargs):
@@ -88,9 +88,8 @@ class TestPeerApi(unittest.TestCase):
     # create peer success
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_create_peer_success(self, mock_post):
-        response = create_peer(
-            "url_create_peer_success", "key", "domain", PeerInfo("peerid", ""), True
-        )
+        const.URL = "url_create_peer_success"
+        response = create_peer("key", "domain", PeerInfo("peerid", ""), True)
         self.assertEqual(
             response.json(),
             {"turn": True, "domain": "domain", "peer_id": "peerid", "key": "key"},
@@ -100,9 +99,8 @@ class TestPeerApi(unittest.TestCase):
     # create peer gets invalid response
     @mock.patch("requests.post", side_effect=mocked_requests_post)
     def test_create_peer_fail(self, mock_post):
-        response = create_peer(
-            "url_create_peer_fail", "key", "domain", PeerInfo("peerid", ""), True
-        )
+        const.URL = "url_create_peer_fail"
+        response = create_peer("key", "domain", PeerInfo("peerid", ""), True)
         self.assertEqual(
             response.err(),
             {
@@ -115,9 +113,8 @@ class TestPeerApi(unittest.TestCase):
 
     # create peer fail due to http error
     def test_create_peer_no_server(self):
-        response = create_peer(
-            "http://url_create_peer_fail", "key", "domain", PeerInfo("peerid", ""), True
-        )
+        const.URL = "http://url_create_peer_fail"
+        response = create_peer("key", "domain", PeerInfo("peerid", ""), True)
         self.assertEqual(
             isinstance(response.err(), requests.exceptions.RequestException), True
         )
@@ -126,7 +123,8 @@ class TestPeerApi(unittest.TestCase):
     # delete peer success
     @mock.patch("requests.delete", side_effect=mocked_requests_delete)
     def test_delete_peer_success(self, mock_post):
-        response = delete_peer("url_delete_peer_success", PeerInfo("peer_id", "token"))
+        const.URL = "url_delete_peer_success"
+        response = delete_peer(PeerInfo("peer_id", "token"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), True)
 
@@ -139,25 +137,24 @@ class TestPeerApi(unittest.TestCase):
             "call_params": {"media_connection_id": "mc-test"},
             "data_params": {"data_connection_id": "da-test"},
         }
-        response = listen_event(
-            "url_listen_event_success", PeerInfo("peer_id", "token")
-        )
+        const.URL = "url_listen_event_success"
+        response = listen_event(PeerInfo("peer_id", "token"))
         self.assertEqual(response.json(), _value)
         self.assertEqual(response.is_ok(), True)
 
     # listen event timeout
     @mock.patch("requests.get", side_effect=mocked_requests_get)
     def test_listen_event_timeout(self, mock_post):
-        response = listen_event(
-            "url_listen_event_timeout", PeerInfo("peer_id", "token")
-        )
+        const.URL = "url_listen_event_timeout"
+        response = listen_event(PeerInfo("peer_id", "token"))
         self.assertEqual(response.json(), {})
         self.assertEqual(response.is_ok(), False)
 
     # get status success
     @mock.patch("requests.get", side_effect=mocked_requests_get)
     def test_delete_peer_success(self, mock_post):
-        response = status("url_get_status_success", PeerInfo("peer_id", "token"))
+        const.URL = "url_get_status_success"
+        response = status(PeerInfo("peer_id", "token"))
         self.assertEqual(response.json(), {"status": "value"})
         self.assertEqual(response.is_ok(), True)
 

@@ -7,6 +7,7 @@ from typing import NewType
 import simplejson as json
 from rest import post, get, put, delete, ApiResponse
 from peer import PeerInfo
+import const
 
 
 class MediaId:
@@ -74,52 +75,54 @@ class AnswerOption:
 
 # This method call POST /media API to open a MediaSocket
 # http://35.200.46.204/#/3.media/media
-def create_media(url, is_video):
-    # type: (str, bool) -> ApiResponse
-    return post("{}/media".format(url), {"is_video": is_video}, 201)
+def create_media(is_video):
+    # type: (bool) -> ApiResponse
+    return post("{}/media".format(const.URL), {"is_video": is_video}, 201)
 
 
 # This method call DELETE /media/{media_id} API to close a MediaSocket
 # http://35.200.46.204/#/3.media/streams_delete
-def delete_media(url, media_id):
-    # type: (str, MediaId) -> ApiResponse
-    return delete("{}/media/{}".format(url, media_id.id()), 204)
+def delete_media(media_id):
+    # type: (MediaId) -> ApiResponse
+    return delete("{}/media/{}".format(const.URL, media_id.id()), 204)
 
 
 # This method call POST /media/rtcp API to open a RtcpSocket
 # http://35.200.46.204/#/3.media/media_rtcp_create
-def create_rtcp(url):
-    # type: (str) -> ApiResponse
-    return post("{}/media/rtcp".format(url), {}, 201)
+def create_rtcp():
+    # type: () -> ApiResponse
+    return post("{}/media/rtcp".format(const.URL), {}, 201)
 
 
 # This method call POST /media/rtcp API to open a RtcpSocket
 # http://35.200.46.204/#/3.media/media_rtcp_create
-def delete_rtcp(url, rtcp_id):
-    # type: (str, RtcpId) -> ApiResponse
-    return delete("{}/media/rtcp/{}".format(url, rtcp_id.id()), 204)
+def delete_rtcp(rtcp_id):
+    # type: (RtcpId) -> ApiResponse
+    return delete("{}/media/rtcp/{}".format(const.URL, rtcp_id.id()), 204)
 
 
 # This method call POST /media/connections API to establish P2P link
 # http://35.200.46.204/#/3.media/media_connection_create
-def call(url, call_option):
-    # type: (str, CallOption) -> ApiResponse
-    return post("{}/media/connections".format(url), call_option.json(), 202)
+def call(call_option):
+    # type: (CallOption) -> ApiResponse
+    return post("{}/media/connections".format(const.URL), call_option.json(), 202)
 
 
 # This method call DELETE /media/connections API to close P2P link
 # http://35.200.46.204/#/3.media/media_connection_close
-def disconnect(url, media_connection_id):
-    # type: (str, MediaConnectionId) -> ApiResponse
-    return delete("{}/media/connections/{}".format(url, media_connection_id.id()), 204)
+def disconnect(media_connection_id):
+    # type: (MediaConnectionId) -> ApiResponse
+    return delete(
+        "{}/media/connections/{}".format(const.URL, media_connection_id.id()), 204
+    )
 
 
 # This method call POST /media/connections/{media_connection_id}/answer API to accept P2P link establishment
 # http://35.200.46.204/#/3.media/media_connection_close
-def answer(url, media_connection_id, answer_option):
-    # type: (str, MediaConnectionId, AnswerOption) -> ApiResponse
+def answer(media_connection_id, answer_option):
+    # type: (MediaConnectionId, AnswerOption) -> ApiResponse
     return post(
-        "{}/media/connections/{}/answer".format(url, media_connection_id.id()),
+        "{}/media/connections/{}/answer".format(const.URL, media_connection_id.id()),
         answer_option.json(),
         202,
     )
@@ -127,26 +130,30 @@ def answer(url, media_connection_id, answer_option):
 
 # This method call POST /media/connections/{media_connection_id}/pli API to send PLI message to neighbour
 # http://35.200.46.204/#/3.media/media_connection_pli
-def pli(url, media_connection_id, body):
-    # type: (str, MediaConnectionId, dict) -> ApiResponse
+def pli(media_connection_id, body):
+    # type: (MediaConnectionId, dict) -> ApiResponse
     return post(
-        "{}/media/connections/{}/pli".format(url, media_connection_id.id()), body, 201,
+        "{}/media/connections/{}/pli".format(const.URL, media_connection_id.id()),
+        body,
+        201,
     )
 
 
 # This method call POST /media/connections/{media_connection_id}/pli API to send PLI message to neighbour
 # http://35.200.46.204/#/3.media/media_connection_pli
-def event(url, media_connection_id):
-    # type: (str, MediaConnectionId) -> ApiResponse
+def event(media_connection_id):
+    # type: (MediaConnectionId) -> ApiResponse
     return get(
-        "{}/media/connections/{}/events".format(url, media_connection_id.id()), 200
+        "{}/media/connections/{}/events".format(const.URL, media_connection_id.id()),
+        200,
     )
 
 
 # This method call GET /media/connections/{media_connection_id}/status API to get status of MediaChannel
 # http://35.200.46.204/#/3.media/media_connection_status
-def status(url, media_connection_id):
-    # type: (str, MediaConnectionId) -> ApiResponse
+def status(media_connection_id):
+    # type: (MediaConnectionId) -> ApiResponse
     return get(
-        "{}/media/connections/{}/status".format(url, media_connection_id.id()), 200
+        "{}/media/connections/{}/status".format(const.URL, media_connection_id.id()),
+        200,
     )

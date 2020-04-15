@@ -34,7 +34,7 @@ def runloop(peer_info, control_queue, media_closing_queue, data_closing_queue):
             rospy.logerr("We lacked patience and got a multiprocessing.TimeoutError")
 
     # delete Peer Object
-    resp = delete_peer(const.URL, peer_info)
+    resp = delete_peer(peer_info)
     if not resp.is_ok():
         raise resp.err()
 
@@ -56,7 +56,7 @@ def listen_peer_events(peer_info, control_queue, media_event_queue, data_event_q
 
         rospy.logerr("listen peer event2")
         # get an event
-        resp = listen_event(const.URL, peer_info)
+        resp = listen_event(peer_info)
         if not resp.is_ok():
             err = resp.err()
             # polling timeout
@@ -116,7 +116,7 @@ def main():
 
     # Create a Peer Object
     resp = create_peer(
-        const.URL, const.API_KEY, "localhost", PeerInfo("peer_id", ""), True,
+        const.API_KEY, "localhost", PeerInfo("peer_id", ""), True,
     ).json()
     peer_info = PeerInfo(resp["params"]["peer_id"], resp["params"]["token"])
 
