@@ -5,6 +5,10 @@ import json
 import rospy
 from typing import NewType
 import simplejson as json
+import multiprocessing
+import Queue
+import sys
+
 from rest import post, get, put, delete, ApiResponse
 from peer import PeerInfo
 
@@ -103,3 +107,21 @@ def status(url, data_connection_id):
     return get(
         "{}/data/connections/{}/status".format(url, data_connection_id.id()), 200
     )
+
+
+def on_events(queue):
+    # type: (multiprocessing.Queue) -> None
+    rate = rospy.Rate(10)  # 10hz
+    # polling while ros is running
+    while True:
+        try:
+            message = queue.get(timeout=0.2)
+            if message["type"] == "CONNECTION":
+                continue
+            elif message["type"] == "APP_CLOSING":
+                break
+        except Queue.Empty as e:
+            continue
+        except Exception as e:
+            rospy.logerr(sys.exc_info())
+            rospy.logerr("We lacked patience and got a multiprocessing.TimeoutError")

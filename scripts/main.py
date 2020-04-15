@@ -11,27 +11,47 @@ import random
 import const
 
 from api.peer import PeerInfo, create_peer, delete_peer, listen_event
-import common
+from api import data
 
 # This method is responsible for deleting peer object when rospy close
-def runloop(peer_info):
-    # type: (PeerInfo) -> None
-    # wait for ros termination
-    i = 0
+def runloop(queue, peer_info):
+    # type: (Queue, PeerInfo) -> None
     rate = rospy.Rate(10)  # 10hz
-    while common.is_running:
-        rate.sleep()
+    # wait for ros termination
+    while True:
+        try:
+            rate.sleep()
+            message = queue.get(timeout=0.2)
+            if message["type"] == "APP_CLOSING":
+                break
+        except Queue.Empty as e:
+            continue
+        except Exception as e:
+            rospy.logerr(sys.exc_info())
+            rospy.logerr("We lacked patience and got a multiprocessing.TimeoutError")
+
     # delete Peer Object
     resp = delete_peer(const.URL, peer_info)
     if not resp.is_ok():
         raise resp.err()
 
 
-def listen_peer_events(peer_info, media_event_queue, data_event_queue):
-    # type: (PeerInfo, multiprocessing.Queue, multiprocessing.Queue) -> None
-    rate = rospy.Rate(10)  # 10hz
+def listen_peer_events(control_queue, peer_info, media_event_queue, data_event_queue):
+    # type: (Queue, PeerInfo, multiprocessing.Queue, multiprocessing.Queue) -> None
     # polling while ros is running
-    while common.is_running:
+    while True:
+        try:
+            message = control_queue.get(timeout=0.1)
+            if message["type"] == "APP_CLOSING":
+                data_event_queue.put({"type": "APP_CLOSING"})
+                media_event_queue.put({"type": "APP_CLOSING"})
+                break
+        except Queue.Empty as e:
+            continue
+        except Exception as e:
+            rospy.logerr(sys.exc_info())
+            rospy.logerr("We lacked patience and got a multiprocessing.TimeoutError")
+
         # get an event
         resp = listen_event(const.URL, peer_info)
         if not resp.is_ok():
@@ -56,27 +76,20 @@ def listen_peer_events(peer_info, media_event_queue, data_event_queue):
             data_event_queue.put(params)
 
 
-def data(queue):
+def media(queue):
     # type: (multiprocessing.Queue) -> None
-    rate = rospy.Rate(10)  # 10hz
-    # polling while ros is running
-    while common.is_running:
+
+    while True:
         try:
-            message = queue.get(timeout=0.2)
-            if message["type"] == "CONNECTION":
-                rospy.logerr("data: {}".format(message))
+            message = queue.get(timeout=0.1)
+            if message["type"] == "APP_CLOSING":
+                break
         except Queue.Empty as e:
             continue
         except Exception as e:
             rospy.logerr(sys.exc_info())
             rospy.logerr("We lacked patience and got a multiprocessing.TimeoutError")
 
-
-def media(queue):
-    # type: (multiprocessing.Queue) -> None
-    rate = rospy.Rate(10)  # 10hz
-    # polling while ros is running
-    while common.is_running:
         try:
             message = queue.get(timeout=0.2)
         except Queue.Empty as e:
@@ -105,22 +118,29 @@ def main():
 
     rate = rospy.Rate(10)  # 10hz
     with futures.ThreadPoolExecutor(max_workers=8) as executor:
+        peer_control_queue = multiprocessing.Queue()
+        loop_control_queue = multiprocessing.Queue()
         media_event_queue = multiprocessing.Queue()
         data_event_queue = multiprocessing.Queue()
         # delete peer object when rospy close
-        closing_future = executor.submit(runloop, peer_info)
+        closing_future = executor.submit(runloop, loop_control_queue, peer_info)
         # poll events from PeerObject
         peer_event_future = executor.submit(
-            listen_peer_events, peer_info, media_event_queue, data_event_queue
+            listen_peer_events,
+            peer_control_queue,
+            peer_info,
+            media_event_queue,
+            data_event_queue,
         )
 
-        data_future = executor.submit(data, data_event_queue)
+        data_future = executor.submit(data.on_events, data_event_queue)
         media_future = executor.submit(media, media_event_queue)
         # keep checking rospy status
         while not rospy.is_shutdown():
             rate.sleep()
         # exit rospy
-        common.is_running = False
+        peer_control_queue.put({"type": "APP_CLOSING"})
+        loop_control_queue.put({"type": "APP_CLOSING"})
         closing_future.result()
         peer_event_future.result()
         data_future.result()
