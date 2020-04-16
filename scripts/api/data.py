@@ -114,6 +114,9 @@ def status(data_connection_id):
     )
 
 
+# When a DataChannel is established by a neighybour,
+# this function decline or redirect data from neighbour to an user program
+# according to the configuration
 def on_connect(config, data_connection_id, key):
     # type: (list, DataConnectionId, str) -> None
     for parameter in config:
@@ -127,12 +130,17 @@ def on_connect(config, data_connection_id, key):
             else:
                 redirect_params = {}
             redirect(data_id, data_connection_id, redirect_params)
+            # FIXME notify connection information to user
             return
     # not intended connection
     # close it
     _resp = disconnect(data_connection_id).json()
 
 
+# event driven process
+# events are basically from GET /peer/events
+# and user programs via ROS channel.
+# only APP_CLOSING is triggerd by ROS itself
 def on_events(config, queue):
     # type: (list, multiprocessing.Queue) -> None
     # polling while ros is running
@@ -140,11 +148,15 @@ def on_events(config, queue):
         try:
             message = queue.get(timeout=0.2)
             if message["type"] == "CONNECTION":
+                # ROS sends SIGTERM
                 data_connection_id = DataConnectionId(message["data_connection_id"])
                 resp = status(data_connection_id).json()
                 on_connect(config, data_connection_id, resp["metadata"])
+                # FIXME this function should store DataConnectionIds to handle DataConnections
                 continue
             elif message["type"] == "APP_CLOSING":
+                # ROS sends SIGTERM
+                # FIXME this function should close DataChannels in this timing
                 break
         except Queue.Empty as e:
             continue
