@@ -118,7 +118,7 @@ def status(data_connection_id):
 # this function decline or redirect data from neighbour to an user program
 # according to the configuration
 def on_connect(config, data_connection_id, key):
-    # type: (list, DataConnectionId, str) -> None
+    # type: (list, DataConnectionId, str) -> dict
     for parameter in config:
         if parameter["name"] == key:
             # Anticipated connection
@@ -131,10 +131,11 @@ def on_connect(config, data_connection_id, key):
                 redirect_params = {}
             redirect(data_id, data_connection_id, redirect_params)
             # FIXME notify connection information to user
-            return
+            return {"data_connection_id": data_connection_id.id()}
     # not intended connection
     # close it
     _resp = disconnect(data_connection_id).json()
+    return {}
 
 
 # event driven process

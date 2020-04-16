@@ -230,7 +230,8 @@ class TestDataApi(unittest.TestCase):
             with patch("scripts.api.data.redirect", side_effect=mock_lib_redirect):
                 config = [{"name": "data"}, {"name": "data2"}]
                 data_connection_id = DataConnectionId("dc_test")
-                on_connect(config, data_connection_id, "data3")
+                ret = on_connect(config, data_connection_id, "data3")
+                self.assertEqual(ret, {})
                 self.assertFalse(mock_lib_redirect.called, "redirect is called")
                 self.assertTrue(mock_lib_disconnect.called, "disconnect is not called")
                 self.assertEqual(
@@ -253,7 +254,8 @@ class TestDataApi(unittest.TestCase):
                         {"name": "data2", "codec": "H264"},
                     ]
                     data_connection_id = DataConnectionId("dc_test")
-                    on_connect(config, data_connection_id, "data2")
+                    ret = on_connect(config, data_connection_id, "data2")
+                    self.assertEqual(ret, {"data_connection_id": "dc_test"})
                     self.assertFalse(mock_lib_disconnect.called, "disconnect is called")
                     self.assertTrue(mock_lib_redirect.called, "redirect is not called")
                     self.assertEqual(
@@ -286,7 +288,8 @@ class TestDataApi(unittest.TestCase):
                         {"name": "data2", "codec": "H264"},
                     ]
                     data_connection_id = DataConnectionId("dc_test")
-                    on_connect(config, data_connection_id, "data")
+                    ret = on_connect(config, data_connection_id, "data")
+                    self.assertEqual(ret, {"data_connection_id": "dc_test"})
                     self.assertFalse(mock_lib_disconnect.called, "disconnect is called")
                     self.assertTrue(mock_lib_redirect.called, "redirect is not called")
                     self.assertEqual(
