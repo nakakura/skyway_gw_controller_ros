@@ -130,12 +130,13 @@ def on_connect(config, data_connection_id, key):
             else:
                 redirect_params = {}
             redirect(data_id, data_connection_id, redirect_params)
+            config.remove(parameter)
             # FIXME notify connection information to user
-            return {"data_connection_id": data_connection_id.id()}
+            return {"data_connection_id": data_connection_id.id(), "config": config}
     # not intended connection
     # close it
     _resp = disconnect(data_connection_id).json()
-    return {}
+    return {"config": config}
 
 
 # event driven process
@@ -145,6 +146,7 @@ def on_connect(config, data_connection_id, key):
 def on_events(config, queue):
     # type: (list, multiprocessing.Queue) -> None
     # polling while ros is running
+    connections = []
     while True:
         try:
             message = queue.get(timeout=0.2)
@@ -152,12 +154,17 @@ def on_events(config, queue):
                 # ROS sends SIGTERM
                 data_connection_id = DataConnectionId(message["data_connection_id"])
                 resp = status(data_connection_id).json()
-                on_connect(config, data_connection_id, resp["metadata"])
+                ret = on_connect(config, data_connection_id, resp["metadata"])
+                config = ret["config"]
+                if "data_connection_id" in ret:
+                    connections.append(DataConnectionId(ret["data_connection_id"]))
                 # FIXME this function should store DataConnectionIds to handle DataConnections
                 continue
             elif message["type"] == "APP_CLOSING":
                 # ROS sends SIGTERM
-                # FIXME this function should close DataChannels in this timing
+                for data_connection_id in connections:
+                    # close DataConnections
+                    _resp = disconnect(data_connection_id).json()
                 break
         except Queue.Empty as e:
             continue

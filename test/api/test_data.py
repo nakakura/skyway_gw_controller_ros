@@ -202,23 +202,57 @@ class TestDataApi(unittest.TestCase):
 
     # events connect
     # Just Close the loop
+    # accept dataconnection
     @mock.patch("requests.get", side_effect=mocked_requests_get)
-    def test_onevent_connect_status_check_success(self, mock_get):
+    def test_onevent_connect_established(self, mock_get):
         const.URL = "test_onevent_connect_not_intend"
         queue = multiprocessing.Queue()
         queue.put({"type": "CONNECTION", "data_connection_id": "dc_test"})
         queue.put({"type": "APP_CLOSING"})
         mock_lib = mock.MagicMock()
+        mock_lib.return_value = {
+            "data_connection_id": "dc_test",
+            "config": [{"name": "data"}],
+        }
+        mock_lib_delete = mock.MagicMock()
         with patch("scripts.api.data.on_connect", side_effect=mock_lib):
-            config = [{"name": "data"}, {"name": "data2"}]
-            on_events(config, queue)
-            self.assertTrue(mock_lib.called, "on_connect is not called")
-            self.assertEqual(
-                mock_lib.call_args[0][0], [{"name": "data"}, {"name": "data2"}]
-            )
-            self.assertEqual(
-                mock_lib.call_args[0][1].id(), DataConnectionId("dc_test").id()
-            )
+            with patch("scripts.api.data.disconnect", side_effect=mock_lib_delete):
+                config = [{"name": "data"}, {"name": "data2"}]
+                on_events(config, queue)
+                self.assertTrue(mock_lib.called, "on_connect is not called")
+                self.assertEqual(
+                    mock_lib.call_args[0][0], [{"name": "data"}, {"name": "data2"}]
+                )
+                self.assertEqual(
+                    mock_lib.call_args[0][1].id(), DataConnectionId("dc_test").id()
+                )
+                self.assertTrue(mock_lib_delete.called, "delete is not called")
+                self.assertEqual(mock_lib_delete.call_args[0][0].id(), "dc_test")
+
+    # events connect
+    # Just Close the loop
+    # accept dataconnection
+    @mock.patch("requests.get", side_effect=mocked_requests_get)
+    def test_onevent_connect_not_established(self, mock_get):
+        const.URL = "test_onevent_connect_not_intend"
+        queue = multiprocessing.Queue()
+        queue.put({"type": "CONNECTION", "data_connection_id": "dc_test"})
+        queue.put({"type": "APP_CLOSING"})
+        mock_lib = mock.MagicMock()
+        mock_lib.return_value = {"config": [{"name": "data"}, {"name": "data2"}]}
+        mock_lib_delete = mock.MagicMock()
+        with patch("scripts.api.data.on_connect", side_effect=mock_lib):
+            with patch("scripts.api.data.disconnect", side_effect=mock_lib_delete):
+                config = [{"name": "data"}, {"name": "data2"}]
+                on_events(config, queue)
+                self.assertTrue(mock_lib.called, "on_connect is not called")
+                self.assertEqual(
+                    mock_lib.call_args[0][0], [{"name": "data"}, {"name": "data2"}]
+                )
+                self.assertEqual(
+                    mock_lib.call_args[0][1].id(), DataConnectionId("dc_test").id()
+                )
+                self.assertFalse(mock_lib_delete.called, "delete is called")
 
     # on_connect
     # load redirect information from config using metadata as a key
@@ -231,7 +265,7 @@ class TestDataApi(unittest.TestCase):
                 config = [{"name": "data"}, {"name": "data2"}]
                 data_connection_id = DataConnectionId("dc_test")
                 ret = on_connect(config, data_connection_id, "data3")
-                self.assertEqual(ret, {})
+                self.assertEqual(ret, {"config": [{"name": "data"}, {"name": "data2"}]})
                 self.assertFalse(mock_lib_redirect.called, "redirect is called")
                 self.assertTrue(mock_lib_disconnect.called, "disconnect is not called")
                 self.assertEqual(
@@ -255,7 +289,13 @@ class TestDataApi(unittest.TestCase):
                     ]
                     data_connection_id = DataConnectionId("dc_test")
                     ret = on_connect(config, data_connection_id, "data2")
-                    self.assertEqual(ret, {"data_connection_id": "dc_test"})
+                    self.assertEqual(
+                        ret,
+                        {
+                            "data_connection_id": "dc_test",
+                            "config": [{"name": "data", "codec": "VP8"}],
+                        },
+                    )
                     self.assertFalse(mock_lib_disconnect.called, "disconnect is called")
                     self.assertTrue(mock_lib_redirect.called, "redirect is not called")
                     self.assertEqual(
@@ -289,7 +329,13 @@ class TestDataApi(unittest.TestCase):
                     ]
                     data_connection_id = DataConnectionId("dc_test")
                     ret = on_connect(config, data_connection_id, "data")
-                    self.assertEqual(ret, {"data_connection_id": "dc_test"})
+                    self.assertEqual(
+                        ret,
+                        {
+                            "data_connection_id": "dc_test",
+                            "config": [{"name": "data2", "codec": "H264"}],
+                        },
+                    )
                     self.assertFalse(mock_lib_disconnect.called, "disconnect is called")
                     self.assertTrue(mock_lib_redirect.called, "redirect is not called")
                     self.assertEqual(
