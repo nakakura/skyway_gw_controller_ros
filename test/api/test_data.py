@@ -23,16 +23,17 @@ from scripts.api.data import *
 import const
 
 
+class MockResponse:
+    def __init__(self, url, json_data, status_code):
+        self.url = url
+        self.json_data = json_data
+        self.status_code = status_code
+
+    def json(self):
+        return self.json_data
+
+
 def mocked_requests_get(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, url, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-            self.url = url
-
-        def json(self):
-            return self.json_data
-
     if args[0] == "url_create_data_success/data":
         return MockResponse(args[0], {}, 200)
     elif args[0] == "url_event_success/data/connections/data_connection_id/events":
@@ -59,15 +60,6 @@ def mocked_requests_get(*args, **kwargs):
 
 
 def mocked_requests_delete(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, url, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-            self.url = url
-
-        def json(self):
-            return self.json_data
-
     if args[0] == "url_delete_data_success/data/data_id":
         return MockResponse(args[0], {}, 204)
     elif (
@@ -82,15 +74,6 @@ def mocked_requests_delete(*args, **kwargs):
 
 
 def mocked_requests_post(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, url, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-            self.url = url
-
-        def json(self):
-            return self.json_data
-
     if args[0] == "url_connections_success/data/connections":
         return MockResponse(args[0], kwargs["json"], 202)
 
@@ -98,15 +81,6 @@ def mocked_requests_post(*args, **kwargs):
 
 
 def mocked_requests_put(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, url, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-            self.url = url
-
-        def json(self):
-            return self.json_data
-
     if args[0] == "url_redirect_success/data/connections/data_connection_id":
         return MockResponse(args[0], kwargs["json"], 200)
 
@@ -224,7 +198,7 @@ class TestDataApi(unittest.TestCase):
         mock_lib = mock.MagicMock()
         with patch("scripts.api.data.on_connect", side_effect=mock_lib):
             on_events(config, queue)
-            self.assert_(not mock_lib.called, "on_connect is called")
+            self.assertTrue(not mock_lib.called, "on_connect is called")
 
     # events connect
     # Just Close the loop
@@ -238,14 +212,93 @@ class TestDataApi(unittest.TestCase):
         with patch("scripts.api.data.on_connect", side_effect=mock_lib):
             config = [{"name": "data"}, {"name": "data2"}]
             on_events(config, queue)
-            self.assert_(mock_lib.called, "on_connect is not called")
-            rospy.logerr(mock_lib.call_args[0][0])
+            self.assertTrue(mock_lib.called, "on_connect is not called")
             self.assertEqual(
                 mock_lib.call_args[0][0], [{"name": "data"}, {"name": "data2"}]
             )
             self.assertEqual(
                 mock_lib.call_args[0][1].id(), DataConnectionId("dc_test").id()
             )
+
+    # on_connect
+    # load redirect information from config using metadata as a key
+    # If it is not an intended connection, disconnect it
+    def test_onconnect_status_check_fail(self):
+        mock_lib_disconnect = mock.MagicMock()
+        mock_lib_redirect = mock.MagicMock()
+        with patch("scripts.api.data.disconnect", side_effect=mock_lib_disconnect):
+            with patch("scripts.api.data.redirect", side_effect=mock_lib_redirect):
+                config = [{"name": "data"}, {"name": "data2"}]
+                data_connection_id = DataConnectionId("dc_test")
+                on_connect(config, data_connection_id, "data3")
+                self.assertFalse(mock_lib_redirect.called, "redirect is called")
+                self.assertTrue(mock_lib_disconnect.called, "disconnect is not called")
+                self.assertEqual(
+                    mock_lib_disconnect.call_args[0][0], data_connection_id
+                )
+
+    # on_connect
+    # load redirect information from config using metadata as a key
+    def test_onconnect_status_check_success_no_redirect_params(self):
+        mock_lib_disconnect = mock.MagicMock()
+        mock_lib_redirect = mock.MagicMock()
+        ret_value = ApiResponse(
+            {"data_id": "da-test", "port": 10001, "ip_v4": "127.0.0.1"}, {}
+        )
+        with patch("scripts.api.data.disconnect", side_effect=mock_lib_disconnect):
+            with patch("scripts.api.data.redirect", side_effect=mock_lib_redirect):
+                with patch("scripts.api.data.create_data", return_value=ret_value):
+                    config = [
+                        {"name": "data", "codec": "VP8"},
+                        {"name": "data2", "codec": "H264"},
+                    ]
+                    data_connection_id = DataConnectionId("dc_test")
+                    on_connect(config, data_connection_id, "data2")
+                    self.assertFalse(mock_lib_disconnect.called, "disconnect is called")
+                    self.assertTrue(mock_lib_redirect.called, "redirect is not called")
+                    self.assertEqual(
+                        mock_lib_redirect.call_args[0][0].id(), DataId("da-test").id()
+                    )
+                    self.assertEqual(
+                        mock_lib_redirect.call_args[0][1].id(), data_connection_id.id()
+                    )
+                    self.assertEqual(
+                        mock_lib_redirect.call_args[0][2], {},
+                    )
+
+    # on_connect
+    # load redirect information from config using metadata as a key
+    def test_onconnect_status_check_success_with_redirect_params(self):
+        mock_lib_disconnect = mock.MagicMock()
+        mock_lib_redirect = mock.MagicMock()
+        ret_value = ApiResponse(
+            {"data_id": "da-test", "port": 10001, "ip_v4": "127.0.0.1"}, {}
+        )
+        with patch("scripts.api.data.disconnect", side_effect=mock_lib_disconnect):
+            with patch("scripts.api.data.redirect", side_effect=mock_lib_redirect):
+                with patch("scripts.api.data.create_data", return_value=ret_value):
+                    config = [
+                        {
+                            "name": "data",
+                            "codec": "VP8",
+                            "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
+                        },
+                        {"name": "data2", "codec": "H264"},
+                    ]
+                    data_connection_id = DataConnectionId("dc_test")
+                    on_connect(config, data_connection_id, "data")
+                    self.assertFalse(mock_lib_disconnect.called, "disconnect is called")
+                    self.assertTrue(mock_lib_redirect.called, "redirect is not called")
+                    self.assertEqual(
+                        mock_lib_redirect.call_args[0][0].id(), DataId("da-test").id()
+                    )
+                    self.assertEqual(
+                        mock_lib_redirect.call_args[0][1].id(), data_connection_id.id()
+                    )
+                    self.assertEqual(
+                        mock_lib_redirect.call_args[0][2],
+                        {"ip_v4": "127.0.0.1", "port": 8000},
+                    )
 
 
 if __name__ == "__main__":

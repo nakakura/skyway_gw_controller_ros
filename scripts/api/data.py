@@ -114,14 +114,19 @@ def status(data_connection_id):
     )
 
 
-# FIXME not test yet
 def on_connect(config, data_connection_id, key):
     # type: (list, DataConnectionId, str) -> None
     for parameter in config:
         if parameter["name"] == key:
             # Anticipated connection
             # redirect as configuration
-            # redirect(parameter, data_connection_id)
+            resp = create_data().json()
+            data_id = DataId(resp["data_id"])
+            if "redirect_params" in parameter:
+                redirect_params = parameter["redirect_params"]
+            else:
+                redirect_params = {}
+            redirect(data_id, data_connection_id, redirect_params)
             return
     # not intended connection
     # close it
