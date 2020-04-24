@@ -3,4 +3,5 @@
     <test test-name="peer_api" pkg="skyway" type="test_peer.py" />
     <test test-name="data_api" pkg="skyway" type="test_data.py" />
     <test test-name="media_api" pkg="skyway" type="test_media.py" />
+    <test test-name="data_redirect" pkg="skyway" type="test_data_redirect.py" />
 </launch>
