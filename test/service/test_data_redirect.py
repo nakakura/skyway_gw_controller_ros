@@ -143,6 +143,64 @@ class TestDataRedirect(unittest.TestCase):
                 self.assertEqual(mock_disconnect.call_count, 1)
                 self.assertEqual(mock_disconnect.call_args[0][0].id(), "dc_test")
 
+    def test_create_redirect_params(self):
+        response = ApiResponse(
+            {"data_id": "da-test", "port": 10001, "ip_v4": "127.0.0.1"}, {},
+        )
+
+        with patch("scripts.api.data.create_data", return_value=response) as mock:
+            (redirect_params, data_socket_info) = create_redirect_params({})
+            self.assertEqual(
+                redirect_params,
+                {"redirect_params": {}, "feed_params": {"data_id": "da-test"}},
+            )
+            self.assertEqual(
+                data_socket_info,
+                {"ip_v4": "127.0.0.1", "port": 10001, "data_id": "da-test"},
+            )
+            self.assertEqual(mock.call_count, 1)
+            pass
+
+    def test_create_redirect_params_with_redirect_params(self):
+        response = ApiResponse(
+            {"data_id": "da-test", "port": 10001, "ip_v4": "127.0.0.1"}, {},
+        )
+
+        with patch("scripts.api.data.create_data", return_value=response) as mock:
+            (redirect_params, data_socket_info) = create_redirect_params(
+                {
+                    "name": "data",
+                    "codec": "VP8",
+                    "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
+                }
+            )
+            self.assertEqual(
+                redirect_params,
+                {
+                    "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
+                    "feed_params": {"data_id": "da-test"},
+                },
+            )
+            self.assertEqual(
+                data_socket_info,
+                {"ip_v4": "127.0.0.1", "port": 10001, "data_id": "da-test"},
+            )
+            self.assertEqual(mock.call_count, 1)
+
+    def test_create_redirect_params_error(self):
+        with patch(
+            "scripts.api.data.create_data",
+            side_effect=requests.exceptions.RequestException("error"),
+        ) as mock:
+            with self.assertRaises(requests.exceptions.RequestException):
+                (_redirect_params, _data_socket_info) = create_redirect_params(
+                    {
+                        "name": "data",
+                        "codec": "VP8",
+                        "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
+                    }
+                )
+
 
 if __name__ == "__main__":
     import rostest
