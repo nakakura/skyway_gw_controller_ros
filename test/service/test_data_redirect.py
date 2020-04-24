@@ -55,13 +55,12 @@ class TestDataRedirect(unittest.TestCase):
             with patch(
                 "scripts.api.data.disconnect", return_value={}
             ) as mock_disconnect:
-                (data_connection_id, param) = load_dataconnection_config(
+                param = load_dataconnection_config(
                     self.config, data.DataConnectionId("dc_test")
                 )
                 self.assertEqual(mock_status.call_count, 1)
                 self.assertEqual(mock_status.call_args[0][0].id(), "dc_test")
                 self.assertFalse(mock_disconnect.called, "disconnect called")
-                self.assertEqual(data_connection_id.id(), "dc_test")
                 self.assertEqual(
                     param,
                     {
@@ -91,7 +90,7 @@ class TestDataRedirect(unittest.TestCase):
                 "scripts.api.data.disconnect", return_value={}
             ) as mock_disconnect:
                 with self.assertRaises(MyError):
-                    (_data_connection_id, _param) = load_dataconnection_config(
+                    _param = load_dataconnection_config(
                         self.config, data.DataConnectionId("dc_test")
                     )
                 self.assertEqual(mock_status.call_count, 1)
@@ -135,7 +134,7 @@ class TestDataRedirect(unittest.TestCase):
                 side_effect=requests.exceptions.RequestException("error"),
             ) as mock_disconnect:
                 with self.assertRaises(requests.exceptions.RequestException):
-                    (_data_connection_id, _param) = load_dataconnection_config(
+                    _param = load_dataconnection_config(
                         self.config, data.DataConnectionId("dc_test")
                     )
                 self.assertEqual(mock_status.call_count, 1)
@@ -159,7 +158,6 @@ class TestDataRedirect(unittest.TestCase):
                 {"ip_v4": "127.0.0.1", "port": 10001, "data_id": "da-test"},
             )
             self.assertEqual(mock.call_count, 1)
-            pass
 
     def test_create_redirect_params_with_redirect_params(self):
         response = ApiResponse(
