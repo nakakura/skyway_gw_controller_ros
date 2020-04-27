@@ -55,7 +55,7 @@ class TestDataRedirect(unittest.TestCase):
             with patch(
                 "scripts.api.data.disconnect", return_value={}
             ) as mock_disconnect:
-                param = load_dataconnection_config(
+                param = load_data_connection_config(
                     self.config, data.DataConnectionId("dc_test")
                 )
                 self.assertEqual(mock_status.call_count, 1)
@@ -90,7 +90,7 @@ class TestDataRedirect(unittest.TestCase):
                 "scripts.api.data.disconnect", return_value={}
             ) as mock_disconnect:
                 with self.assertRaises(MyError):
-                    _param = load_dataconnection_config(
+                    _param = load_data_connection_config(
                         self.config, data.DataConnectionId("dc_test")
                     )
                 self.assertEqual(mock_status.call_count, 1)
@@ -106,7 +106,7 @@ class TestDataRedirect(unittest.TestCase):
                 "scripts.api.data.disconnect", return_value={}
             ) as mock_disconnect:
                 with self.assertRaises(requests.exceptions.RequestException):
-                    (_data_connection_id, _param) = load_dataconnection_config(
+                    (_data_connection_id, _param) = load_data_connection_config(
                         self.config, data.DataConnectionId("dc_test")
                     )
                 self.assertEqual(mock_status.call_count, 1)
@@ -134,7 +134,7 @@ class TestDataRedirect(unittest.TestCase):
                 side_effect=requests.exceptions.RequestException("error"),
             ) as mock_disconnect:
                 with self.assertRaises(requests.exceptions.RequestException):
-                    _param = load_dataconnection_config(
+                    (_param) = load_data_connection_config(
                         self.config, data.DataConnectionId("dc_test")
                     )
                 self.assertEqual(mock_status.call_count, 1)
@@ -198,6 +198,151 @@ class TestDataRedirect(unittest.TestCase):
                         "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
                     }
                 )
+
+    def test_on_connect_success(self):
+        with patch(
+            "service.data_redirect.load_data_connection_config",
+            return_value={
+                "name": "data",
+                "codec": "VP8",
+                "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
+            },
+        ) as mock_data_recirect:
+            with patch(
+                "service.data_redirect.create_redirect_params",
+                return_value=(
+                    {
+                        "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
+                        "feed_params": {"data_id": "da-test"},
+                    },
+                    {"ip_v4": "127.0.0.1", "port": 10001, "data_id": "da-test"},
+                ),
+            ) as mock_create_redirect_params:
+                with patch(
+                    "scripts.api.data.redirect",
+                    return_value=ApiResponse(
+                        {
+                            "command_type": "DATA_CONNECTION_PUT",
+                            "data_id": "da-50a32bab-b3d9-4913-8e20-f79c90a6a211",
+                        },
+                        {},
+                    ),
+                ) as mock_redirect_api:
+                    config = on_connect(self.config, data.DataConnectionId("dc_test"))
+                    # these three mocks should be called
+                    self.assertTrue(mock_data_recirect.called)
+                    self.assertTrue(mock_create_redirect_params.called)
+                    self.assertTrue(mock_redirect_api.called)
+                    self.assertEqual(config, [{"name": "data2", "codec": "H264"}])
+
+    def test_on_connect_load_connection_config_fail(self):
+        with patch(
+            "service.data_redirect.load_data_connection_config",
+            side_effect=MyError("error"),
+        ) as mock_data_recirect:
+            with patch(
+                "service.data_redirect.create_redirect_params",
+                return_value=(
+                    {
+                        "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
+                        "feed_params": {"data_id": "da-test"},
+                    },
+                    {"ip_v4": "127.0.0.1", "port": 10001, "data_id": "da-test"},
+                ),
+            ) as mock_create_redirect_params:
+                with patch(
+                    "scripts.api.data.redirect",
+                    side_effect=requests.exceptions.RequestException("error"),
+                ) as mock_redirect_api:
+                    config = on_connect(self.config, data.DataConnectionId("dc_test"))
+                    # these three mocks should be called
+                    self.assertTrue(mock_data_recirect.called)
+                    self.assertFalse(mock_create_redirect_params.called)
+                    self.assertFalse(mock_redirect_api.called)
+                    self.assertEqual(config, self.config)
+
+    # TestCase for WebRTC gw returns invalid data
+    # as a response of PUT /data/connections/{data_connection_id}
+    # This case means WebRTC Gateway has some bug.
+    # So just raise Error
+    def test_on_connect_redirect_response_400(self):
+        with patch(
+            "service.data_redirect.load_data_connection_config",
+            return_value={
+                "name": "data",
+                "codec": "VP8",
+                "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
+            },
+        ) as mock_data_recirect:
+            with patch(
+                "service.data_redirect.create_redirect_params",
+                return_value=(
+                    {
+                        "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
+                        "feed_params": {"data_id": "da-test"},
+                    },
+                    {"ip_v4": "127.0.0.1", "port": 10001, "data_id": "da-test"},
+                ),
+            ) as mock_create_redirect_params:
+                with patch(
+                    "scripts.api.data.redirect",
+                    return_value=ApiResponse(
+                        {},
+                        {
+                            "command_type": "DATA_CONNECTION_DELETE",
+                            "params": {
+                                "errors": [
+                                    {
+                                        "field": "peer_id",
+                                        "message": "peer_id field is not specified",
+                                    }
+                                ]
+                            },
+                        },
+                    ),
+                ) as mock_redirect_api:
+                    with self.assertRaises(MyError):
+                        _config = on_connect(
+                            self.config, data.DataConnectionId("dc_test")
+                        )
+                    # these three mocks should be called
+                    self.assertTrue(mock_data_recirect.called)
+                    self.assertTrue(mock_create_redirect_params.called)
+                    self.assertTrue(mock_redirect_api.called)
+
+    # TestCase for WebRTC gw crashed after on_connect start processing
+    def test_on_connect_redirect_fail(self):
+        with patch(
+            "service.data_redirect.load_data_connection_config",
+            return_value={
+                "name": "data",
+                "codec": "VP8",
+                "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
+            },
+        ) as mock_data_recirect:
+            with patch(
+                "service.data_redirect.create_redirect_params",
+                return_value=(
+                    {
+                        "redirect_params": {"ip_v4": "127.0.0.1", "port": 8000},
+                        "feed_params": {"data_id": "da-test"},
+                    },
+                    {"ip_v4": "127.0.0.1", "port": 10001, "data_id": "da-test"},
+                ),
+            ) as mock_create_redirect_params:
+                with patch(
+                    "scripts.api.data.redirect",
+                    side_effect=requests.exceptions.RequestException("error"),
+                ) as mock_redirect_api:
+                    with self.assertRaises(requests.exceptions.RequestException):
+                        config = on_connect(
+                            self.config, data.DataConnectionId("dc_test")
+                        )
+                        self.assertTrue(False, "this method should not be called")
+                    # these three mocks should be called
+                    self.assertTrue(mock_data_recirect.called)
+                    self.assertTrue(mock_create_redirect_params.called)
+                    self.assertTrue(mock_redirect_api.called)
 
 
 if __name__ == "__main__":

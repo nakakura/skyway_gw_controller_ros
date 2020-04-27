@@ -12,7 +12,7 @@ class MyError(Exception):
 
 # load config for the new DataConnection
 # if the new DataConnection is invalid, raise Error
-def load_dataconnection_config(config, data_connection_id):
+def load_data_connection_config(config, data_connection_id):
     # type: (list, DataConnectionId) -> dict
 
     # check status of new DataConnection
@@ -45,3 +45,27 @@ def create_redirect_params(config):
         "redirect_params": redirect_params,
     }
     return (json, result)
+
+
+def on_connect(config, data_connection_id):
+    # type: (list, DataConnectionId) -> list
+    try:
+        params = load_data_connection_config(config, data_connection_id)
+    except MyError:
+        # just close invalid connection
+        return config
+    else:
+        (redirect_params, data_sock_info) = create_redirect_params(params)
+        result = data.redirect(
+            data_sock_info["data_id"], data_connection_id, redirect_params
+        )
+        if not result.is_ok():
+            raise MyError(
+                "WebRTC Gateway returns invalid data"
+                "as a response of PUT /data/connections/DATA_CONNECTION_ID:"
+                "{}".format(result.err())
+            )
+
+        # redirect success
+        # remove redirect information which is used for this connection
+        return [x for x in config if x["name"] != params["name"]]
