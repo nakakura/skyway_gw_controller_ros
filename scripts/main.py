@@ -51,6 +51,7 @@ def listen_peer_events(peer_info, control_queue, media_event_queue, data_event_q
         except Exception as e:
             rospy.logerr(sys.exc_info())
             rospy.logerr("We lacked patience and got a multiprocessing.TimeoutError")
+            raise e
 
         # get an event
         resp = listen_event(peer_info)
