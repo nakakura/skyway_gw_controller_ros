@@ -4,7 +4,6 @@ import rospy
 
 from scripts.api import data
 from scripts.api.data import DataConnectionId
-import multiprocessing
 
 from scripts.error import MyError
 
@@ -45,8 +44,8 @@ def create_redirect_params(config):
     return (json, result)
 
 
-def on_connect(queue, config, data_connection_id):
-    # type: (multiprocessing.Queue, list, DataConnectionId) -> list
+def on_connect(config, data_connection_id):
+    # type: (list, DataConnectionId) -> (list, dict)
     try:
         params = load_data_connection_config(config, data_connection_id)
     except MyError:
@@ -64,12 +63,12 @@ def on_connect(queue, config, data_connection_id):
                 "{}".format(result.err())
             )
 
-        queue.put(
+        # redirect success
+        # remove redirect information which is used for this connection
+        return (
+            [x for x in config if x["name"] != params["name"]],
             {
                 "type": "CONNECTION",
                 "value": {"redirect_params": redirect_params, "data": result.json()},
-            }
+            },
         )
-        # redirect success
-        # remove redirect information which is used for this connection
-        return [x for x in config if x["name"] != params["name"]]

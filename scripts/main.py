@@ -100,7 +100,31 @@ def media(queue):
             rospy.logerr("We lacked patience and got a multiprocessing.TimeoutError")
 
 
+def hoge(list):
+    rate = rospy.Rate(1)  # 10hz
+    while True:
+        list.append(0)
+        rospy.logerr("hoge {}".format(list))
+        rate.sleep()
+
+
+def hoge2(list):
+    rate = rospy.Rate(1)  # 10hz
+    while True:
+        list = [3, 4, 5]
+        rospy.logerr("hoge2 {}".format(list))
+        rate.sleep()
+
+
 def main():
+    rospy.init_node("talker", anonymous=True)
+    list = [0]
+    with futures.ThreadPoolExecutor(max_workers=8) as executor:
+        fut1 = executor.submit(hoge, list)
+        fut2 = executor.submit(hoge2, list)
+        fut1.result()
+        fut2.result()
+
     if not "API_KEY" in os.environ:
         raise rospy.ROSException, "Set API_KEY in environments"
 
@@ -108,8 +132,6 @@ def main():
     const.API_KEY = os.environ["API_KEY"]
     # SkyWay WebRTC Gateway endpoint
     const.URL = "http://localhost:8000"
-
-    rospy.init_node("talker", anonymous=True)
 
     # Create a Peer Object
     resp = create_peer(

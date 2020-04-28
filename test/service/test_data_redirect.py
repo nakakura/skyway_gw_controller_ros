@@ -229,20 +229,17 @@ class TestDataRedirect(unittest.TestCase):
                         {},
                     ),
                 ) as mock_redirect_api:
-                    queue = multiprocessing.Queue()
-                    queue.put = MagicMock()
-                    config = on_connect(
-                        queue, self.config, data.DataConnectionId("dc_test")
+                    (config, result) = on_connect(
+                        self.config, data.DataConnectionId("dc_test")
                     )
                     # these three mocks should be called
                     self.assertTrue(mock_data_redirect.called)
                     self.assertTrue(mock_create_redirect_params.called)
                     self.assertTrue(mock_redirect_api.called)
                     self.assertEqual(config, [{"name": "data2", "codec": "H264"}])
-                    self.assertTrue(queue.put.called)
                     # queue recv connection event, which will be sent to ROS subscriber
                     self.assertEqual(
-                        queue.put.call_args[0][0],
+                        result,
                         {
                             "type": "CONNECTION",
                             "value": {
@@ -280,18 +277,12 @@ class TestDataRedirect(unittest.TestCase):
                     "scripts.api.data.redirect",
                     side_effect=requests.exceptions.RequestException("error"),
                 ) as mock_redirect_api:
-                    queue = multiprocessing.Queue()
-                    queue.put = MagicMock()
-                    config = on_connect(
-                        queue, self.config, data.DataConnectionId("dc_test")
-                    )
+                    config = on_connect(self.config, data.DataConnectionId("dc_test"))
                     # these three mocks should be called
                     self.assertTrue(mock_data_redirect.called)
                     self.assertFalse(mock_create_redirect_params.called)
                     self.assertFalse(mock_redirect_api.called)
                     self.assertEqual(config, self.config)
-                    # Queue doesn't recv any data
-                    self.assertFalse(queue.put.called)
 
     # TestCase for WebRTC gw returns invalid data
     # as a response of PUT /data/connections/{data_connection_id}
@@ -333,18 +324,14 @@ class TestDataRedirect(unittest.TestCase):
                         },
                     ),
                 ) as mock_redirect_api:
-                    queue = multiprocessing.Queue()
-                    queue.put = MagicMock()
                     with self.assertRaises(MyError):
                         _config = on_connect(
-                            queue, self.config, data.DataConnectionId("dc_test")
+                            self.config, data.DataConnectionId("dc_test")
                         )
                     # these three mocks should be called
                     self.assertTrue(mock_data_redirect.called)
                     self.assertTrue(mock_create_redirect_params.called)
                     self.assertTrue(mock_redirect_api.called)
-                    # Queue doesn't recv any data
-                    self.assertFalse(queue.put.called)
 
     # TestCase for WebRTC gw crashed after on_connect start processing
     def test_on_connect_redirect_fail(self):
@@ -370,19 +357,15 @@ class TestDataRedirect(unittest.TestCase):
                     "scripts.api.data.redirect",
                     side_effect=requests.exceptions.RequestException("error"),
                 ) as mock_redirect_api:
-                    queue = multiprocessing.Queue()
-                    queue.put = MagicMock()
                     with self.assertRaises(requests.exceptions.RequestException):
                         config = on_connect(
-                            queue, self.config, data.DataConnectionId("dc_test")
+                            self.config, data.DataConnectionId("dc_test")
                         )
                         self.assertTrue(False, "this method should not be called")
                     # these three mocks should be called
                     self.assertTrue(mock_data_redirect.called)
                     self.assertTrue(mock_create_redirect_params.called)
                     self.assertTrue(mock_redirect_api.called)
-                    # Queue doesn't recv any data
-                    self.assertFalse(queue.put.called)
 
 
 if __name__ == "__main__":
