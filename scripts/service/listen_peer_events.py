@@ -16,8 +16,10 @@ class MyError(Exception):
     pass
 
 
+# this method keeps listening peer event, and fires some processes in response to them
+# http://35.200.46.204/#/1.peers/peer_event
 def listen_peer_events(peer_info, control_queue, media_event_queue, data_event_queue):
-    # type: (PeerInfo, Queue, Queue, Queue) -> None
+    # type: (peer.PeerInfo, Queue, Queue, Queue) -> None
     # polling while ros is running
     while True:
         try:
@@ -45,6 +47,9 @@ def listen_peer_events(peer_info, control_queue, media_event_queue, data_event_q
         if not "event" in json:
             continue
         elif json["event"] == "CLOSE":
+            params = {"type": "CLOSE"}
+            data_event_queue.put(params)
+            media_event_queue.put(params)
             break
         elif json["event"] == "OPEN":
             params = json["params"]
@@ -53,3 +58,9 @@ def listen_peer_events(peer_info, control_queue, media_event_queue, data_event_q
             params = json["data_params"]
             params["type"] = "CONNECTION"
             data_event_queue.put(params)
+        elif json["event"] == "CALL":
+            params = json["call_params"]
+            params["type"] = "CALL"
+            media_event_queue.put(params)
+        elif json["event"] == "ERROR":
+            raise MyError(json)

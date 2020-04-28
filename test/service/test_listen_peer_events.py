@@ -57,7 +57,9 @@ class TestListenPeerEvent(unittest.TestCase):
     def test_listen_event_close(self):
         control_queue = multiprocessing.Queue()
         media_event_queue = multiprocessing.Queue()
+        media_event_queue.put = MagicMock()
         data_event_queue = multiprocessing.Queue()
+        data_event_queue.put = MagicMock()
 
         # FEED 2 PASS message, but listen_peer_events will access to listen_event only once,
         # because it returns CLOSE event.
@@ -76,6 +78,8 @@ class TestListenPeerEvent(unittest.TestCase):
                 self.peer_info, control_queue, media_event_queue, data_event_queue
             )
             self.assertEqual(mock_listen_events.call_count, 1)
+            self.assertEqual(media_event_queue.put.call_count, 1)
+            self.assertEqual(data_event_queue.put.call_count, 1)
 
     def test_listen_event_connection(self):
         control_queue = multiprocessing.Queue()
@@ -170,6 +174,56 @@ class TestListenPeerEvent(unittest.TestCase):
             )
             # listen_peer_events ignores 408 Timeout and keep polling
             self.assertEqual(mock_listen_events.call_count, 2)
+
+    def test_listen_event_call(self):
+        control_queue = multiprocessing.Queue()
+        media_event_queue = multiprocessing.Queue()
+        data_event_queue = multiprocessing.Queue()
+        media_event_queue.put = MagicMock()
+
+        # FEED 2 PASS message, but listen_peer_events will access to listen_event only once,
+        # because it returns CLOSE event.
+        control_queue.put({"type": "PASS"})
+        control_queue.put({"type": "APP_CLOSING"})
+
+        with patch(
+            "scripts.api.peer.listen_event",
+            return_value=ApiResponse(
+                {"event": "CALL", "call_params": {"media_connection_id": "mc-test"},},
+                {},
+            ),
+        ) as mock_listen_events:
+            listen_peer_events(
+                self.peer_info, control_queue, media_event_queue, data_event_queue
+            )
+            self.assertEqual(mock_listen_events.call_count, 1)
+            self.assertEqual(media_event_queue.put.call_count, 1)
+            self.assertEqual(
+                media_event_queue.put.call_args[0][0],
+                {"media_connection_id": "mc-test", "type": "CALL"},
+            )
+
+    def test_listen_event_error(self):
+        control_queue = multiprocessing.Queue()
+        media_event_queue = multiprocessing.Queue()
+        data_event_queue = multiprocessing.Queue()
+        media_event_queue.put = MagicMock()
+
+        # FEED 2 PASS message, but listen_peer_events will access to listen_event only once,
+        # because it returns CLOSE event.
+        control_queue.put({"type": "PASS"})
+        control_queue.put({"type": "APP_CLOSING"})
+
+        with patch(
+            "scripts.api.peer.listen_event",
+            return_value=ApiResponse(
+                {"event": "ERROR", "error_message": "BROWSER_INCOMPATIBLE"}, {},
+            ),
+        ):
+            with self.assertRaises(MyError):
+                listen_peer_events(
+                    self.peer_info, control_queue, media_event_queue, data_event_queue
+                )
 
 
 if __name__ == "__main__":
