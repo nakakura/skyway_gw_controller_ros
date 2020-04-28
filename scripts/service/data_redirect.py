@@ -6,10 +6,7 @@ from scripts.api import data
 from scripts.api.data import DataConnectionId
 import multiprocessing
 
-
-class MyError(Exception):
-    pass
-
+from scripts.error import MyError
 
 # load config for the new DataConnection
 # if the new DataConnection is invalid, raise Error

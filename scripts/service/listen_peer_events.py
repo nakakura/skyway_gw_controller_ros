@@ -10,11 +10,7 @@ import random
 import const
 
 from scripts.api import peer
-
-# FIXME
-class MyError(Exception):
-    pass
-
+from scripts.error import MyError
 
 # this method keeps listening peer event, and fires some processes in response to them
 # http://35.200.46.204/#/1.peers/peer_event
